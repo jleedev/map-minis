@@ -1,0 +1,269 @@
+{
+  "name": "toll",
+  "version": 8,
+  "glyphs": "https://fonts.openmaptiles.org/{fontstack}/{range}.pbf",
+  "sources": {
+    "openmaptiles": {
+      "type": "vector",
+      "url": "https://6ug7hetxl9.execute-api.us-east-2.amazonaws.com/data/v3.json"
+    }
+  },
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "layout": {
+        "visibility": "visible"
+      },
+      "paint": {
+        "background-color": "#555544"
+      }
+    },
+    {
+      "id": "water",
+      "source": "openmaptiles",
+      "source-layer": "water",
+      "type": "fill",
+      "paint": {
+        "fill-color": "#99ccff"
+      }
+    },
+    {
+      "id": "highway-other",
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "type": "line",
+      "filter": [
+        "!",
+        [
+          "in",
+          [
+            "get",
+            "class"
+          ],
+          [
+            "literal",
+            [
+              "motorway",
+              "trunk"
+            ]
+          ]
+        ]
+      ],
+      "paint": {
+        "line-color": [
+          "case",
+          [
+            "==",
+            [
+              "get",
+              "toll"
+            ],
+            1
+          ],
+          "#00ff00",
+          "#000000"
+        ],
+        "line-width": [
+          "match",
+          [
+            "get",
+            "class"
+          ],
+          "primary",
+          4,
+          "secondary",
+          3,
+          "tertiary",
+          2,
+          "minor",
+          1,
+          "service",
+          0.5,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "highway-motorway-casing",
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "type": "line",
+      "paint": {
+        "line-width": [
+          "match",
+          [
+            "get",
+            "class"
+          ],
+          "motorway",
+          8,
+          "trunk",
+          4,
+          4
+        ],
+        "line-color": "#880088"
+      },
+      "filter": [
+        "in",
+        [
+          "get",
+          "class"
+        ],
+        [
+          "literal",
+          [
+            "motorway",
+            "trunk"
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "highway-motorway",
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "type": "line",
+      "paint": {
+        "line-width": [
+          "match",
+          [
+            "get",
+            "class"
+          ],
+          "motorway",
+          4,
+          "trunk",
+          2,
+          2
+        ],
+        "line-color": "#ff00ff"
+      },
+      "filter": [
+        "in",
+        [
+          "get",
+          "class"
+        ],
+        [
+          "literal",
+          [
+            "motorway",
+            "trunk"
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "highway-motorway-toll-casing",
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "type": "line",
+      "paint": {
+        "line-width": [
+          "match",
+          [
+            "get",
+            "class"
+          ],
+          "motorway",
+          8,
+          "trunk",
+          4,
+          4
+        ],
+        "line-color": "#008800"
+      },
+      "filter": [
+        "all",
+        [
+          "in",
+          [
+            "get",
+            "class"
+          ],
+          [
+            "literal",
+            [
+              "motorway",
+              "trunk"
+            ]
+          ]
+        ],
+        [
+          "==",
+          [
+            "get",
+            "toll"
+          ],
+          1
+        ]
+      ]
+    },
+    {
+      "id": "highway-motorway-toll",
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "type": "line",
+      "paint": {
+        "line-width": [
+          "match",
+          [
+            "get",
+            "class"
+          ],
+          "motorway",
+          4,
+          "trunk",
+          2,
+          2
+        ],
+        "line-color": "#00ff00"
+      },
+      "filter": [
+        "all",
+        [
+          "in",
+          [
+            "get",
+            "class"
+          ],
+          [
+            "literal",
+            [
+              "motorway",
+              "trunk"
+            ]
+          ]
+        ],
+        [
+          "==",
+          [
+            "get",
+            "toll"
+          ],
+          1
+        ]
+      ]
+    },
+    {
+      "id": "place",
+      "source": "openmaptiles",
+      "source-layer": "place",
+      "type": "symbol",
+      "layout": {
+        "text-field": [
+          "get",
+          "name"
+        ],
+        "text-font": [
+          "Metropolis Regular"
+        ],
+        "text-size": 12
+      },
+      "paint": {
+        "text-color": "#ffffff"
+      }
+    }
+  ]
+}

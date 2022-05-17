@@ -1,0 +1,25 @@
+<!doctype html>
+<meta charset=utf-8>
+<title>toll</title>
+<meta name=viewport content="width=device-width">
+
+<style>
+#map{position:absolute;left:0;right:0;top:0;bottom:0}
+</style>
+
+<script src="https://unpkg.com/maplibre-gl@2.1.7/dist/maplibre-gl.js"></script>
+<link rel=stylesheet href="https://unpkg.com/maplibre-gl@2.1.7/dist/maplibre-gl.css">
+
+<script type="module">
+  let map = window.map = new maplibregl.Map({
+    container: 'map',
+    style: './toll.json',
+    hash: true,
+    center: [-80.2, 40.4],
+    zoom: 11,
+  });
+  map.getCanvas().focus();
+</script>
+
+<div id=map></div>
+
