@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+<head>
+
+<meta charset="utf-8" />
+<title>Display a map</title>
+
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+
+<script src="https://unpkg.com/maplibre-gl@2.1.7/dist/maplibre-gl.js"></script>
+<link href="https://unpkg.com/maplibre-gl@2.1.7/dist/maplibre-gl.css" rel="stylesheet" />
+
+<style>
+body { margin: 0; padding: 0; }
+#map { position: absolute; top: 0; bottom: 0; width: 100%; }
+#inspect {
+    position: absolute;
+    pointer-events: none;
+    left: 0;
+    right: 0;
+    text-align: center;
+    bottom: 10vh;
+}
+#inspect span {
+    background: rgb(255 255 255 / 50%);
+}
+</style>
+
+</head>
+<body>
+
+<div id="map"></div>
+<div id="inspect"></div>
+
+<script type=module>
+
+  import * as landuse from "./landuse.js";
+
+  const style = await (await fetch("./style.json")).json();
+
+  style.layers = [];
+
+  style.layers.push(
+    landuse.waterFill,
+    landuse.parkFill,
+    landuse.landcoverGeneric,
+    landuse.landuseGeneric,
+    landuse.aerowayLine,
+    landuse.aerowayFill,
+    landuse.landcoverOutlineGeneric,
+    landuse.landuseOutlineGeneric,
+    landuse.parkOutline,
+    landuse.aerowayOutline,
+    landuse.waterOutline,
+  );
+  
+  var map = window.map = new maplibregl.Map({
+    container: 'map',
+    style,
+    center: [ -77.033, 38.888 ],
+    zoom: 14,
+    hash: true,
+  });
+  map.addControl(new maplibregl.ScaleControl());
+  map.dragRotate.disable();
+  map.touchZoomRotate.disableRotation();
+  map.touchPitch.disable();
+  map.keyboard.disableRotation();
+  map.getCanvas().focus();
+
+  map.on("mousemove", (e) => {
+    let features = map.queryRenderedFeatures(e.point);
+    let content = features.map((f) =>
+      [f.sourceLayer, f.properties.class, f.properties.subclass]
+        .filter((x) => x)
+        .join("/")
+    );
+    inspect.innerHTML = '';
+    (span => {
+      span.innerText = content.join("\n");
+      inspect.append(span);
+    })(document.createElement('span'));
+  });
+
+</script>
+
+</body>
+</html>
+

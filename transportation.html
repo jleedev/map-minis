@@ -1,0 +1,331 @@
+<!doctype html>
+<html>
+<head>
+
+<meta charset="utf-8" />
+<title>Display a map</title>
+
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+
+<script
+      src="https://unpkg.com/maplibre-gl@2.1.7/dist/maplibre-gl.js"
+      crossorigin integrity="sha512-gbL8519AKjxUDt2MQkH9X43fFWl34kv6uXVBJVj/0+QbIAOBDBCN8R3Z5GBgGuFoU3JH+t8btwF7gPK2/Y2Hvw=="
+  ></script>
+<link
+   href="https://unpkg.com/maplibre-gl@2.1.7/dist/maplibre-gl.css"
+   rel="stylesheet"
+   crossorigin integrity="sha512-3rG/XrR5du72D9zrz70tH4kRl8DBGWt9TabqBPxncxZxw87kn07qz86wkDd23cvuqSUiXw+larY8C4GO5wjrIw=="
+/>
+
+<style>
+body { margin: 0; padding: 0; }
+#map { position: absolute; top: 0; bottom: 0; width: 100%; }
+</style>
+
+</head>
+<body>
+
+<div id="map"></div>
+
+<script type=module>
+
+  let style = await (await fetch("style.json")).json();
+
+  style.layers = [];
+
+  let physicalWidth = (widthMetres) => {
+    const maxZoom = 24;
+    const metres_per_pixel_z24 = 0.002970051486045122;
+    const metres_per_pixel_z0 = 313086.06;
+    return [
+      "interpolate",
+      ["exponential", 2],
+      ["zoom"],
+      0,
+      widthMetres / metres_per_pixel_z0,
+      24,
+      widthMetres / metres_per_pixel_z24,
+    ];
+  };
+
+  style.layers.push({
+    "id": "place",
+    "type": "symbol",
+    "source": "openmaptiles",
+    "source-layer": "place",
+    "layout": {
+      "text-field": ["get", "name"],
+      "text-font": ["Metropolis Light"],
+      "text-size": 15,
+      "symbol-placement": "point",
+    },
+    "paint": {
+      "text-color": "#000000",
+      "text-halo-width": 2,
+      "text-halo-blur": 0,
+      "text-halo-color": "#ffffff",
+    }
+  });
+
+  style.layers.push({
+    "id": "water",
+    "type": "fill",
+    "source": "openmaptiles",
+    "source-layer": "water",
+    "paint": {
+      "fill-color": "hsla(60, 50%, 50%, 1)",
+    }
+  });
+
+  style.layers.push({
+    "id": "landuse",
+    "type": "fill",
+    "source": "openmaptiles",
+    "source-layer": "landuse",
+    "filter": [
+      "all",
+      ["!=", "class", "neighbourhood"],
+    ],
+    "paint": {
+      "fill-color": "hsla(30, 50%, 50%, 0.2)",
+    }
+  });
+
+  style.layers.push({
+    "id": "landcover",
+    "type": "fill",
+    "source": "openmaptiles",
+    "source-layer": "landcover",
+    "filter": [
+      "all",
+      ["!=", "class", "wood"],
+    ],
+    "paint": {
+      "fill-color": "hsla(30, 50%, 50%, 0.2)",
+    }
+  });
+
+  style.layers.push({
+    "id": "park",
+    "type": "fill",
+    "source": "openmaptiles",
+    "source-layer": "park",
+    "paint": {
+      "fill-color": "hsla(30, 50%, 50%, 0.2)",
+    }
+  });
+
+  [
+    {
+      "id": "stream",
+      "filter": ["all",
+        ["==", "class", "stream"],
+      ],
+      "widthMetres": 3,
+    },
+    {
+      "id": "river",
+      "filter": ["all",
+        ["==", "class", "river"],
+      ],
+      "widthMetres": 10,
+    },
+  ].forEach(({id, filter, widthMetres}) => {
+    style.layers.push({
+      id,
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "waterway",
+      filter,
+      "layout": {
+        "line-join": "round",
+        "line-cap": "round",
+      },
+      "paint": {
+        "line-color": "hsla(60, 50%, 50%, 1)",
+        "line-width": physicalWidth(widthMetres),
+      }
+    });
+  });
+
+  [
+    {
+      "id": "motorway",
+      "filter": ["all",
+        ["==", "class", "motorway"],
+        ["!=", "ramp", 1],
+      ],
+      "widthMetres": 15,
+    },
+    {
+      "id": "motorway_ramp",
+      "filter": ["all",
+        ["==", "class", "motorway"],
+        ["==", "ramp", 1],
+      ],
+      "widthMetres": 9,
+    },
+    {
+      "id": "trunk",
+      "filter": ["all",
+        ["==", "class", "trunk"],
+        ["!=", "ramp", 1],
+      ],
+      "widthMetres": 12,
+    },
+    {
+      "id": "trunk_ramp",
+      "filter": ["all",
+        ["==", "class", "trunk"],
+        ["==", "ramp", 1],
+      ],
+      "widthMetres": 5,
+    },
+    {
+      "id": "primary",
+      "filter": ["all",
+        ["==", "class", "primary"],
+        ["!=", "ramp", 1],
+      ],
+      "widthMetres": 10,
+    },
+    {
+      "id": "primary_ramp",
+      "filter": ["all",
+        ["==", "class", "primary"],
+        ["==", "ramp", 1],
+      ],
+      "widthMetres": 5,
+    },
+    {
+      "id": "secondary",
+      "filter": ["all",
+        ["==", "class", "secondary"],
+        ["!=", "ramp", 1],
+      ],
+      "widthMetres": 9,
+    },
+    {
+      "id": "secondary_ramp",
+      "filter": ["all",
+        ["==", "class", "secondary"],
+        ["==", "ramp", 1],
+      ],
+      "widthMetres": 5,
+    },
+    {
+      "id": "tertiary",
+      "filter": ["all",
+        ["==", "class", "tertiary"],
+        ["!=", "ramp", 1],
+      ],
+      "widthMetres": 8,
+    },
+    {
+      "id": "tertiary_ramp",
+      "filter": ["all",
+        ["==", "class", "tertiary"],
+        ["==", "ramp", 1],
+      ],
+      "widthMetres": 5,
+    },
+    {
+      "id": "minor",
+      "filter": ["all", ["==", "class", "minor"], ],
+      "widthMetres": 6,
+    },
+    {
+      "id": "service",
+      "filter": ["all",
+        ["==", "class", "service"],
+        ["!=", "service", "parking_aisle"],
+        ["!=", "service", "driveway"],
+      ],
+      "widthMetres": 5,
+    },
+    {
+      "id": "parking_aisle",
+      "filter": ["all",
+        ["==", "class", "service"],
+        ["==", "service", "parking_aisle"],
+      ],
+      "widthMetres": 3.5,
+    },
+    {
+      "id": "driveway",
+      "filter": ["all",
+        ["==", "class", "service"],
+        ["==", "service", "driveway"],
+      ],
+      "widthMetres": 3,
+    },
+    {
+      "id": "path",
+      "filter": ["all", ["==", "class", "path"], ],
+      "widthMetres": 1.5,
+    },
+    {
+      "id": "busway",
+      "filter": ["all", ["==", "class", "busway"], ],
+      "widthMetres": 8,
+      "hue": 120,
+    },
+    {
+      "id": "transit",
+      "filter": ["all", ["==", "class", "transit"], ],
+      "widthMetres": 2.5,
+      "hue": 210,
+    },
+    {
+      "id": "rail",
+      "filter": ["all", ["==", "class", "rail"], ],
+      "widthMetres": 2,
+      "hue": 240,
+    },
+  ].forEach(({id, filter, widthMetres, hue=180}) => {
+    style.layers.push({
+      id,
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      filter,
+      "layout": {
+        "line-join": "round",
+        "line-cap": "round",
+      },
+      "paint": {
+        "line-color": `hsla(${hue}, 50%, 50%, 0.9)`,
+        "line-width": physicalWidth(widthMetres),
+      }
+    });
+  });
+
+  style.layers.push({
+    "id": "building",
+    "type": "fill",
+    "source": "openmaptiles",
+    "source-layer": "building",
+    "paint": {
+      "fill-color": "hsla(330, 50%, 50%, 0.9)",
+    }
+  });
+
+  var map = window.map = new maplibregl.Map({
+    container: 'map',
+    style,
+    center: [-80.044, 40.382],
+    zoom: 17,
+    hash: true,
+  });
+  map.addControl(new maplibregl.ScaleControl());
+  map.dragRotate.disable();
+  map.touchZoomRotate.disableRotation();
+  map.touchPitch.disable();
+  map.keyboard.disableRotation();
+  map.getCanvas().focus();
+
+</script>
+
+</body>
+</html>
+
