@@ -1,0 +1,189 @@
+<!doctype html>
+<html>
+<head>
+
+<meta charset="utf-8" />
+<title>Display a map</title>
+
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+
+<script src="https://unpkg.com/maplibre-gl@2.1.7/dist/maplibre-gl.js"></script>
+<link href="https://unpkg.com/maplibre-gl@2.1.7/dist/maplibre-gl.css" rel="stylesheet" />
+
+<style>
+body { margin: 0; padding: 0; }
+#map { position: absolute; top: 0; bottom: 0; width: 100%; }
+#legend { position: absolute; right: 0; pointer-events: none; color: white }
+</style>
+
+</head>
+<body>
+
+<div id="map"></div>
+<div id="legend"></div>
+
+<script type=module>
+
+  let cp = x => JSON.parse(JSON.stringify(x));
+
+  let style = await (await fetch('style.json')).json();
+
+  let allLayers = [
+    "water", "waterway", "landcover", "landuse", "mountain_peak", "park",
+    "boundary", "aeroway", "transportation", "building", "water_name",
+    "transportation_name", "place", "housenumber", "poi", "aerodrome_label",
+    "globallandcover",
+  ]; 
+
+  let pointLayers = [
+    "mountain_peak",
+    "water_name",
+    "poi", "aerodrome_label",
+    "globallandcover",
+  ]; 
+
+  let lineLayers = [
+    "water", "waterway", "landcover", "landuse", "mountain_peak", "park",
+    "boundary", "aeroway", "transportation", "building", "water_name",
+    "transportation_name",
+    "place", "housenumber", "poi", "aerodrome_label",
+    "globallandcover",
+  ]; 
+
+  let areaLayers = [
+    "water", "landcover", "landuse", "mountain_peak", "park",
+    "building", "water_name",
+    "place", "housenumber", "poi", "aerodrome_label",
+    "globallandcover",
+  ]; 
+
+  let pointTextLayers = [
+    "mountain_peak",
+    "aeroway", "water_name",
+    "place", "housenumber", "poi", "aerodrome_label",
+    "globallandcover",
+  ]; 
+
+  let linearTextLayers = [
+    "waterway", "mountain_peak",
+    "aeroway", "water_name",
+    "transportation_name", "place", "housenumber", "poi", "aerodrome_label",
+    "globallandcover",
+  ]; 
+
+  style.layers = [
+    {"id":"background","type":"background","paint":{"background-color":"#000"}}
+  ];
+
+  let hue = 0;
+  allLayers.forEach(layer => {
+
+    hue += 25;
+    let lineColor = `hsla(${hue}, 50%, 50%, 0.7)`;
+    let fillColor = `hsla(${hue}, 50%, 50%, 0.4)`;
+    let pointColor = `hsla(${hue}, 50%, 50%, 0.8)`;
+
+    let legendItem = document.createElement('div');
+    legendItem.innerHTML = `<div style="display:inline-block;width:1ch;height:1ch;background-color:hsl(${hue},50%,50%"></div> ${layer}<br>`;
+    legend.append(legendItem);
+
+    if (pointLayers.find(x => x === layer)) {
+      style.layers.push({
+        "id": `${layer}-point`,
+        "type": "circle",
+        "source": "openmaptiles",
+        "source-layer": layer,
+        "paint": {
+          "circle-color": pointColor,
+          "circle-pitch-alignment": "map",
+        },
+      });
+    }
+
+    if (lineLayers.find(x => x === layer)) {
+      style.layers.push({
+        "id": `${layer}-line`,
+        "type": "line",
+        "source": "openmaptiles",
+        "source-layer": layer,
+        "paint": {
+          "line-color": lineColor,
+        },
+      });
+    }
+
+    if (areaLayers.find(x => x === layer)) {
+      style.layers.push({
+        "id": `${layer}-area`,
+        "type": "fill",
+        "source": "openmaptiles",
+        "source-layer": layer,
+        "paint": {
+          "fill-color": fillColor,
+        },
+      });
+    }
+
+    if (linearTextLayers.find(x => x === layer)) {
+      style.layers.push({
+        "id": `${layer}-text-line`,
+        "type": "symbol",
+        "source": "openmaptiles",
+        "source-layer": layer,
+        "layout": {
+          "text-field": ["coalesce", ["get", "name"], ["get", "ref"], ["get", "subclass"], ["get", "class"], ["get", "admin_level"], "?"],
+          "text-font": ["Metropolis Light"],
+          "text-size": 10,
+          "symbol-placement": "line",
+          "symbol-spacing": 75,
+        },
+        "paint": {
+          "text-color": "#000000",
+          "text-halo-width": 2,
+          "text-halo-blur": 2,
+          "text-halo-color": lineColor,
+        },
+      });
+    }
+
+    if (pointTextLayers.find(x => x === layer)) {
+      style.layers.push({
+        "id": `${layer}-text-point`,
+        "type": "symbol",
+        "source": "openmaptiles",
+        "source-layer": layer,
+        "layout": {
+          "text-field": ["coalesce", ["get", "name"], ["get", "ref"], ["get", "subclass"], ["get", "class"], ["get", "admin_level"], ["get", "housenumber"], "?"],
+          "text-font": ["Metropolis Light"],
+          "text-size": 10,
+          "symbol-placement": "point",
+        },
+        "paint": {
+          "text-color": "#000000",
+          "text-halo-width": 2,
+          "text-halo-blur": 2,
+          "text-halo-color": lineColor,
+        },
+      });
+    }
+
+  });
+
+  var map = window.map = new maplibregl.Map({
+    container: 'map',
+    style,
+    center: [0, 0],
+    zoom: 1,
+    hash: true,
+  });
+  map.addControl(new maplibregl.ScaleControl());
+  map.dragRotate.disable();
+  map.touchZoomRotate.disableRotation();
+  map.touchPitch.disable();
+  map.keyboard.disableRotation();
+  map.getCanvas().focus();
+
+</script>
+
+</body>
+</html>
