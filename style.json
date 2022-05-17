@@ -1,0 +1,28 @@
+{
+  "version": 8,
+  "glyphs": "https://fonts.openmaptiles.org/{fontstack}/{range}.pbf",
+  "sources": {
+    "raster-tiles": {
+      "type": "raster",
+      "tiles": [
+        "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}{ratio}.png",
+        "https://cartodb-basemaps-b.global.ssl.fastly.net/light_all/{z}/{x}/{y}{ratio}.png",
+        "https://cartodb-basemaps-c.global.ssl.fastly.net/light_all/{z}/{x}/{y}{ratio}.png",
+        "https://cartodb-basemaps-d.global.ssl.fastly.net/light_all/{z}/{x}/{y}{ratio}.png"
+      ],
+      "tileSize": 256,
+      "attribution": "© <a href=\"http://www.openstreetmap.org/copyright\"> OpenStreetMap </a> contributors, © <a href=\"https://carto.com/about-carto/\"> CARTO </a>"
+    },
+    "openmaptiles": {
+      "type": "vector",
+      "url": "https://6ug7hetxl9.execute-api.us-east-2.amazonaws.com/data/v3.json"
+    }
+  },
+  "layers": [
+    {
+      "id": "tiles",
+      "type": "raster",
+      "source": "raster-tiles"
+    }
+  ]
+}
