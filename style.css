@@ -1,8 +1,14 @@
+nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 288px);
+  justify-content: space-evenly;
+}
 figure {
   position: relative;
   display: inline-flex;
   flex-direction: column;
   align-items: center;
+  margin: 16px;
 }
 figure a::after {
   position: absolute;
@@ -11,4 +17,7 @@ figure a::after {
   right: 0;
   bottom: 0;
   content: "";
+}
+figure a:hover::after {
+  background: #ff00ff33;
 }
