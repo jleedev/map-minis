@@ -87,6 +87,11 @@ body { margin: 0; padding: 0; }
         "type": "circle",
         "source": "openmaptiles",
         "source-layer": layer,
+        "filter": [
+          "any",
+          ["==", ["geometry-type"], "Point"],
+          ["==", ["geometry-type"], "MultiPoint"],
+        ],
         "paint": {
           "circle-color": pointColor,
           "circle-pitch-alignment": "map",
@@ -100,6 +105,11 @@ body { margin: 0; padding: 0; }
         "type": "line",
         "source": "openmaptiles",
         "source-layer": layer,
+        "filter": [
+          "any",
+          ["==", ["geometry-type"], "LineString"],
+          ["==", ["geometry-type"], "MultiLineString"],
+        ],
         "paint": {
           "line-color": lineColor,
         },
@@ -112,6 +122,11 @@ body { margin: 0; padding: 0; }
         "type": "fill",
         "source": "openmaptiles",
         "source-layer": layer,
+        "filter": [
+          "any",
+          ["==", ["geometry-type"], "Polygon"],
+          ["==", ["geometry-type"], "MultiPolygon"],
+        ],
         "paint": {
           "fill-color": fillColor,
         },
@@ -124,6 +139,11 @@ body { margin: 0; padding: 0; }
         "type": "symbol",
         "source": "openmaptiles",
         "source-layer": layer,
+        "filter": [
+          "any",
+          ["==", ["geometry-type"], "LineString"],
+          ["==", ["geometry-type"], "MultiLineString"],
+        ],
         "layout": {
           "text-field": ["coalesce", ["get", "name"], ["get", "ref"], ["get", "subclass"], ["get", "class"], ["get", "admin_level"], "?"],
           "text-font": ["Metropolis Light"],
@@ -146,6 +166,11 @@ body { margin: 0; padding: 0; }
         "type": "symbol",
         "source": "openmaptiles",
         "source-layer": layer,
+        "filter": [
+          "any",
+          ["==", ["geometry-type"], "Point"],
+          ["==", ["geometry-type"], "MultiPoint"],
+        ],
         "layout": {
           "text-field": ["coalesce", ["get", "name"], ["get", "ref"], ["get", "subclass"], ["get", "class"], ["get", "admin_level"], ["get", "housenumber"], "?"],
           "text-font": ["Metropolis Light"],
