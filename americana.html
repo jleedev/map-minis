@@ -1,0 +1,106 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Display a map</title>
+
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+
+    <script src="https://unpkg.com/maplibre-gl@2.1.7/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@2.1.7/dist/maplibre-gl.css" rel="stylesheet" />
+
+    <style>
+      body { margin: 0; padding: 0; }
+      #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+      #legend { position: absolute; right: 0; pointer-events: none; color: white; }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div id="legend"></div>
+
+    <script type="module">
+      const style = await (await fetch("./style.json")).json();
+
+      import { highwayFilter, highwayFillWidth, highwayCasingWidth } from "./americana-road-width.js";
+      import { lineCasingColor, lineFillColor } from "./americana-road-color.js";
+
+      style.layers = [];
+
+      let backgroundColor = {
+        stops: [
+          [6, "rgba(253, 251, 242, 1)"],
+          [10, "rgba(253, 251, 242, 1)"],
+          [14, "rgba(250, 246, 242, 1)"],
+          [15, "rgba(250, 246, 242, 1)"],
+        ],
+      };
+
+      style.layers.push({
+        id: "background",
+        type: "background",
+        paint: {
+          "background-color": backgroundColor,
+        },
+      });
+
+      style.layers.push({
+        "id": "water",
+        "source": "openmaptiles",
+        "source-layer": "water",
+        "type": "fill",
+        "paint": {
+          "fill-color": "lightsteelblue",
+        },
+      });
+
+      style.layers.push({
+        "id": "waterway",
+        "source": "openmaptiles",
+        "source-layer": "waterway",
+        "type": "line",
+        "paint": {
+          "line-color": "lightsteelblue",
+        },
+      });
+
+      style.layers.push({
+        "id": "road-casing",
+        "source": "openmaptiles",
+        "source-layer": "transportation",
+        "type": "line",
+        "filter": highwayFilter,
+        "paint": {
+          "line-width": highwayCasingWidth,
+          "line-color": lineCasingColor,
+        },
+      });
+
+      style.layers.push({
+        "id": "road-fill",
+        "source": "openmaptiles",
+        "source-layer": "transportation",
+        "type": "line",
+        "filter": highwayFilter,
+        "paint": {
+          "line-width": highwayFillWidth,
+          "line-color": lineFillColor,
+        },
+      });
+
+      var map = (window.map = new maplibregl.Map({
+        container: "map",
+        style,
+        center: [-84.5, 39.1],
+        zoom: 12,
+        hash: true,
+      }));
+      map.addControl(new maplibregl.ScaleControl());
+      map.dragRotate.disable();
+      map.touchZoomRotate.disableRotation();
+      map.touchPitch.disable();
+      map.keyboard.disableRotation();
+      map.getCanvas().focus();
+    </script>
+  </body>
+</html>
