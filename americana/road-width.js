@@ -1,4 +1,4 @@
-import { unionInterpolationStops, unflat } from "./utils.js";
+import { unionInterpolationStops, unflat } from "./exponential.js";
 
 // At this zoom, render switches from unified to differentiated
 // bridge/tunnel rendering
