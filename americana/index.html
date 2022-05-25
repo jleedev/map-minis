@@ -20,10 +20,10 @@
     <div id="legend"></div>
 
     <script type="module">
-      const style = await (await fetch("./style.json")).json();
+      const style = await (await fetch("../style.json")).json();
 
-      import { highwayFilter, highwayFillWidth, highwayCasingWidth } from "./americana-road-width.js";
-      import { lineCasingColor, lineFillColor } from "./americana-road-color.js";
+      import { highwayFilter, highwayFillWidth, highwayCasingWidth } from "./road-width.js";
+      import { lineCasingColor, lineFillColor } from "./road-color.js";
 
       style.layers = [];
 
@@ -36,6 +36,7 @@
         ],
       };
 
+      /*
       style.layers.push({
         id: "background",
         type: "background",
@@ -63,6 +64,7 @@
           "line-color": "lightsteelblue",
         },
       });
+      */
 
       style.layers.push({
         "id": "road-casing",
@@ -73,6 +75,11 @@
         "paint": {
           "line-width": highwayCasingWidth,
           "line-color": lineCasingColor,
+          "line-blur": 0.5,
+        },
+        "layout": {
+          "line-join": "round",
+          "line-cap": "round",
         },
       });
 
@@ -85,6 +92,11 @@
         "paint": {
           "line-width": highwayFillWidth,
           "line-color": lineFillColor,
+          "line-blur": 0.5,
+        },
+        "layout": {
+          "line-join": "round",
+          "line-cap": "round",
         },
       });
 
