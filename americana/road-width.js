@@ -1,11 +1,6 @@
 import { unionInterpolationStops, unflat } from "./exponential.js";
-
-// At this zoom, render switches from unified to differentiated
-// bridge/tunnel rendering
-const minzoomBrunnel = 11;
-
-// Exponent base for zoom interpolation
-const roadExp = 1.2;
+import { buildLets } from "./interpolation.js";
+import { buildCase, highwayClasses, roadExp } from "./road-common.js";
 
 // Width of road and casing
 // Defined as one of
@@ -154,35 +149,6 @@ const buildRoadWidthInterpolation = (getter) => unionInterpolationStops(roadWidt
 
 const [roadFillWidthInterpolation, roadFillInterpolationLabels] = buildRoadWidthInterpolation(obj => obj.fill);
 const [roadCasingWidthInterpolation, roadCasingInterpolationLabels] = buildRoadWidthInterpolation(obj => obj.casing);
-
-const buildLets = (interpolationObjList) => [
-  ...interpolationObjList.flatMap((obj) => unflat(obj.stops).flatMap(([label, value]) => [
-    `z${label}_${obj.id}`,
-    value,
-  ])),
-];
-
-const highwayClasses = ["motorway", "trunk", "primary", "secondary", "tertiary", "minor", "service"];
-
-export const highwayFilter = ["in", ["get", "class"], ["literal", highwayClasses]];
-
-const buildCase = (id) => {
-  const result = ["all"];
-  for (const k of id.split("_")) {
-    if (highwayClasses.includes(k)) {
-      result.push(["==", ["get", "class"], k]);
-    } else if (k == "expressway") {
-      result.push(["==", ["get", "expressway"], 1]);
-    } else if (k == "link") {
-      result.push(["==", ["get", "ramp"], 1]);
-    } else if (k == "small") {
-      result.push(["in", ["get", "service"], ["literal", ["driveway", "parking_aisle"]]]);
-    } else {
-      throw new TypeError(`${id} - ${k}`);
-    }
-  }
-  return result;
-};
 
 const buildRoadWidthCases = getter => label => [
   label,

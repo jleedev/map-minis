@@ -22,8 +22,9 @@
     <script type="module">
       const style = await (await fetch("../style.json")).json();
 
-      import { highwayFilter, highwayFillWidth, highwayCasingWidth } from "./road-width.js";
+      import { highwayFillWidth, highwayCasingWidth } from "./road-width.js";
       import { lineCasingColor, lineFillColor } from "./road-color.js";
+      import { highwayFilter } from "./road-common.js";
 
       style.layers = [];
 
