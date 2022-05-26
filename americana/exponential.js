@@ -20,7 +20,7 @@ const terpValue = (a, b, t) => {
   } else if (typeof a == 'string' && a.startsWith('hsl(') && b.startsWith('hsl(')) {
     const hslRe = /hsl\((.*), (.*)%, (.*)%\)/;
     const [ha, sa, la] = a.match(hslRe).slice(1).map(Number);
-    const [hb, sb, lb] = a.match(hslRe).slice(1).map(Number);
+    const [hb, sb, lb] = b.match(hslRe).slice(1).map(Number);
     const ht = terpNumber(ha, hb, t);
     const st = terpNumber(sa, sb, t);
     const lt = terpNumber(la, lb, t);
