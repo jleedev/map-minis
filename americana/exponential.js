@@ -9,7 +9,26 @@ export const getStopValues = (stops) => stops.flatMap((x, i) => i % 2 == 1 ? [x]
 
 export const unflat = (stops) => [...zip(getStopLabels(stops), getStopValues(stops))];
 
-const terp = (a, b, t) => (a * (1 - t)) + (b * t);
+const terpNumber = (a, b, t) => (a * (1 - t)) + (b * t);
+
+const terpValue = (a, b, t) => {
+  if (typeof a != typeof b) {
+    throw new TypeError(`${typeof a} != ${typeof b}`);
+  }
+  if (typeof a == 'number') {
+    return terpNumber(a, b, t);
+  } else if (typeof a == 'string' && a.startsWith('hsl(') && b.startsWith('hsl(')) {
+    const hslRe = /hsl\((.*), (.*)%, (.*)%\)/;
+    const [ha, sa, la] = a.match(hslRe).slice(1).map(Number);
+    const [hb, sb, lb] = a.match(hslRe).slice(1).map(Number);
+    const ht = terpNumber(ha, hb, t);
+    const st = terpNumber(sa, sb, t);
+    const lt = terpNumber(la, lb, t);
+    return `hsl(${ht}, ${st}%, ${lt}%)`;
+  } else {
+    throw new TypeError();
+  }
+};
 
 const exponentialInterpolation = (input, base, lower, upper) => {
   const difference = upper - lower;
@@ -35,7 +54,7 @@ const evaluateExponential = (stops, base, input) => {
     const lower = labels[i];
     const upper = labels[i + 1];
     const t = exponentialInterpolation(input, base, lower, upper);
-    return terp(values[i], values[i + 1], t);
+    return terpValue(values[i], values[i + 1], t);
   }
 };
 
@@ -50,10 +69,19 @@ const addInterpolationStops = (stops, base, labels) => {
     }
   });
   output.sort((a, b) => a[0] - b[0]);
+  /*
+  for (let i = 0; i < output.length; i++) {
+    // XXX
+    if (Number.isNaN(output[i][1])) {
+      output[i][1] = 'lime';
+    }
+  }
+  */
   return output.flat();
 };
 
 export const unionInterpolationStops = (obj_list, base) => {
+  console.trace(obj_list);
   // [{ id, stops }]
   const allLabels = [...new Set(obj_list.flatMap(obj => getStopLabels(obj.stops)))].sort((a, b) => a - b);
   return [obj_list.map(obj => ({

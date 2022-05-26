@@ -62,7 +62,12 @@ const roadColor = [
       minzoomBrunnel - 0.5, `hsl(${tollRoadHue}, 70%, 60%)`,
       14, `hsl(${tollRoadHue}, 71%, 45%)`,
     ],
-    casing: "motorway",
+    casing: [
+      4, `hsl(${tollRoadHue}, 10%, 85%)`,
+      6, `hsl(${tollRoadHue}, 60%, 50%)`,
+      minzoomBrunnel - 0.5, `hsl(${tollRoadHue}, 71%, 40%)`,
+      14, `hsl(${tollRoadHue}, 51%, 9%)`,
+    ],
     surface: `hsl(${tollRoadHue}, 50%, 70%)`,
   },
   {
@@ -104,7 +109,11 @@ const roadColor = [
   {
     id: "trunk_toll",
     fill: `hsl(${tollRoadHue}, 77%, 50%)`,
-    casing: "trunk",
+    casing: [
+      5, `hsl(${tollRoadHue}, 77%, 50%)`,
+      9, `hsl(${tollRoadHue}, 77%, 50%)`,
+      15, `hsl(${tollRoadHue}, 70%, 18%)`,
+    ],
     surface: `hsl(${tollRoadHue}, 95%, 80%)`,
   },
   // etc.
@@ -115,10 +124,12 @@ const buildRoadColorInterpolation = (getter) => unionInterpolationStops(roadColo
   const stops = getter(obj);
   if (Array.isArray(stops)) {
     // Defines a list of interpolation labels/values
-    return {
-      id: obj.id,
-      stops,
-    };
+    return [
+      {
+        id: obj.id,
+        stops,
+      }
+    ];
   } else {
     // Doesn't - defines a literal color or refers to another named value.
     return [];
@@ -136,14 +147,17 @@ const buildRoadColorCases = getter => label => [
     ...roadColor.flatMap((obj) => {
       const theCase = buildCase(obj.id);
       let theValue = getter(obj);
+      console.log(theCase, '->', theValue);
       const varify = (v) => ["var", makeVar(label, v)];
       const shouldVarify = (v) => (typeof v == "string" && !v.match('^hsl'));
       const mayVarify = (v) => shouldVarify(v) ? varify(v) : v;
       if (Array.isArray(theValue)) {
         // Fetch the interpolation steps we extracted
+        theValue = varify(obj.id);
       } else {
-        theValue = mayVarify(obj.id);
+        theValue = mayVarify(theValue);
       }
+      console.log('->', theValue);
       return [
         theCase,
         theValue,
