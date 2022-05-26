@@ -21,6 +21,8 @@ export const buildCase = (id) => {
       result.push(["==", ["get", "ramp"], 1]);
     } else if (k == "small") {
       result.push(["in", ["get", "service"], ["literal", ["driveway", "parking_aisle"]]]);
+    } else if (k == "toll") {
+      result.push(["==", ["get", "toll"], 1]);
     } else {
       throw new TypeError(`${id} - ${k}`);
     }

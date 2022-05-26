@@ -1,6 +1,6 @@
-import { unionInterpolationStops, unflat } from "./exponential.js";
-import { buildLets } from "./interpolation.js";
-import { buildCase, highwayClasses, roadExp } from "./road-common.js";
+import { unionInterpolationStops } from "./exponential.js";
+import { assembleProperty, makeVar } from "./interpolation.js";
+import { buildCase, roadExp } from "./road-common.js";
 
 // Width of road and casing
 // Defined as one of
@@ -136,6 +136,7 @@ const roadWidth = [
 const buildRoadWidthInterpolation = (getter) => unionInterpolationStops(roadWidth.flatMap(obj => {
   const stops = getter(obj);
   if (Array.isArray(stops) && stops[0] != "*") {
+    // Defines a list of interpolation labels/values
     return [
       {
         id: obj.id,
@@ -143,6 +144,8 @@ const buildRoadWidthInterpolation = (getter) => unionInterpolationStops(roadWidt
       },
     ];
   } else {
+    // Doesn't - refers to another named value, or multiplies it, either way it
+    // doesn't need to be used here.
     return [];
   }
 }), roadExp);
@@ -156,7 +159,7 @@ const buildRoadWidthCases = getter => label => [
     "case",
     ...roadWidth.flatMap((obj) => {
       const theCase = buildCase(obj.id);
-      const varify = (v) => ["var", `z${label}_${v}`];
+      const varify = (v) => ["var", makeVar(label, v)];
       const shouldVarify = (v) => (typeof v == "string" && v !== "*");
       const mayVarify = (v) => shouldVarify(v) ? varify(v) : v;
       let theValue = getter(obj);
@@ -164,7 +167,7 @@ const buildRoadWidthCases = getter => label => [
         if (theValue[0] == "*") {
           theValue = theValue.map(v => mayVarify(v));
         } else {
-          // Lookup interpolation steps defined inline
+          // Fetch the interpolation steps we extracted
           theValue = varify(obj.id);
         }
       } else {
@@ -183,24 +186,14 @@ const buildRoadWidthCases = getter => label => [
 const roadFillWidthCases = buildRoadWidthCases(obj => obj.fill);
 const roadCasingWidthCases = buildRoadWidthCases(obj => obj.casing);
 
-const buildLineWidth = (interpolationLets, interpolationLabels, cases) => [
-  "let",
-  ...buildLets(interpolationLets),
-  [
-    "interpolate",
-    ["exponential", roadExp],
-    ["zoom"],
-    ...interpolationLabels.flatMap((label) => cases(label)),
-  ],
-];
-
-export const highwayFillWidth = buildLineWidth(
+export const highwayFillWidth = assembleProperty(
   roadFillWidthInterpolation,
   roadFillInterpolationLabels,
-  roadFillWidthCases);
+  roadFillWidthCases,
+  roadExp);
 
-export const highwayCasingWidth = buildLineWidth(
+export const highwayCasingWidth = assembleProperty(
   roadCasingWidthInterpolation,
   roadCasingInterpolationLabels,
-  roadCasingWidthCases);
+  roadCasingWidthCases, roadExp);
 

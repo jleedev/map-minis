@@ -23,7 +23,7 @@
       const style = await (await fetch("../style.json")).json();
 
       import { highwayFillWidth, highwayCasingWidth } from "./road-width.js";
-      import { lineCasingColor, lineFillColor } from "./road-color.js";
+      import { highwayFillColor, highwayCasingColor, highwaySurfaceColor } from "./road-color.js";
       import { highwayFilter } from "./road-common.js";
 
       style.layers = [];
@@ -75,7 +75,7 @@
         "filter": highwayFilter,
         "paint": {
           "line-width": highwayCasingWidth,
-          "line-color": lineCasingColor,
+          "line-color": highwayCasingColor,
           "line-blur": 0.5,
         },
         "layout": {
@@ -92,7 +92,7 @@
         "filter": highwayFilter,
         "paint": {
           "line-width": highwayFillWidth,
-          "line-color": lineFillColor,
+          "line-color": highwayFillColor,
           "line-blur": 0.5,
         },
         "layout": {
@@ -100,6 +100,8 @@
           "line-cap": "round",
         },
       });
+
+      console.log(style);
 
       var map = (window.map = new maplibregl.Map({
         container: "map",

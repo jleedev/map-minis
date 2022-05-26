@@ -4,10 +4,22 @@
 
 import { unflat } from "./exponential.js";
 
-export const buildLets = (interpolationObjList) => [
+const buildLets = (interpolationObjList) => [
   ...interpolationObjList.flatMap((obj) => unflat(obj.stops).flatMap(([label, value]) => [
-    `z${label}_${obj.id}`,
+    makeVar(label, obj.id),
     value,
   ])),
 ];
 
+export const assembleProperty = (interpolationLets, interpolationLabels, cases, roadExp) => [
+  "let",
+  ...buildLets(interpolationLets),
+  [
+    "interpolate",
+    ["exponential", roadExp],
+    ["zoom"],
+    ...interpolationLabels.flatMap((label) => cases(label)),
+  ],
+];
+
+export const makeVar = (label, v) => `z${label}_${v}`.replace(".", "_");

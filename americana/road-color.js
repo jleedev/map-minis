@@ -1,32 +1,6 @@
-export const lineCasingColor = [
-  "match",
-  ["get", "class"],
-  ["motorway", "trunk"],
-  "maroon",
-  "black",
-];
-
-export const lineFillColor = [
-  "match",
-  ["get", "class"],
-  ["motorway", "trunk"],
-  [
-    "match",
-    ["get", "ramp"],
-    [1],
-    "red",
-    [
-      "match",
-      ["get", "expressway"],
-      [1],
-      "white",
-      "red",
-    ],
-  ],
-  "silver",
-];
-
-// ^^^ entirely temporary
+import { unionInterpolationStops } from "./exponential.js";
+import { makeVar, assembleProperty } from "./interpolation.js";
+import { buildCase, roadExp } from "./road-common.js";
 
 const minzoomBrunnel = 11;
 
@@ -137,14 +111,67 @@ const roadColor = [
   // enough to start out
 ];
 
-/*
-export const highwayFillColor = buildLineColor(
+const buildRoadColorInterpolation = (getter) => unionInterpolationStops(roadColor.flatMap(obj => {
+  const stops = getter(obj);
+  if (Array.isArray(stops)) {
+    // Defines a list of interpolation labels/values
+    return {
+      id: obj.id,
+      stops,
+    };
+  } else {
+    // Doesn't - defines a literal color or refers to another named value.
+    return [];
+  }
+}), roadExp);
+
+const [roadFillColorInterpolation, roadFillInterpolationLabels] = buildRoadColorInterpolation(obj => obj.fill);
+const [roadCasingColorInterpolation, roadCasingInterpolationLabels] = buildRoadColorInterpolation(obj => obj.casing);
+const [roadSurfaceColorInterpolation, roadSurfaceInterpolationLabels] = buildRoadColorInterpolation(obj => obj.surface);
+
+const buildRoadColorCases = getter => label => [
+  label,
+  [
+    "case",
+    ...roadColor.flatMap((obj) => {
+      const theCase = buildCase(obj.id);
+      let theValue = getter(obj);
+      const varify = (v) => ["var", makeVar(label, v)];
+      const shouldVarify = (v) => (typeof v == "string" && !v.match('^hsl'));
+      const mayVarify = (v) => shouldVarify(v) ? varify(v) : v;
+      if (Array.isArray(theValue)) {
+        // Fetch the interpolation steps we extracted
+      } else {
+        theValue = mayVarify(obj.id);
+      }
+      return [
+        theCase,
+        theValue,
+      ];
+    }),
+    // Obvious fallback
+    'magenta',
+  ],
+];
+
+const roadFillColorCases = buildRoadColorCases(obj => obj.fill);
+const roadCasingColorCases = buildRoadColorCases(obj => obj.casing);
+const roadSurfaceColorCases = buildRoadColorCases(obj => obj.surface);
+
+export const highwayFillColor = assembleProperty(
   roadFillColorInterpolation,
   roadFillInterpolationLabels,
-  roadFillColorCases);
+  roadFillColorCases,
+  roadExp);
 
-export const highwayCasingColor = buildLineColor(
+export const highwayCasingColor = assembleProperty(
   roadCasingColorInterpolation,
   roadCasingInterpolationLabels,
-  roadCasingColorCases);
-*/
+  roadCasingColorCases,
+  roadExp);
+
+export const highwaySurfaceColor = assembleProperty(
+  roadSurfaceColorInterpolation,
+  roadSurfaceInterpolationLabels,
+  roadSurfaceColorCases,
+  roadExp);
