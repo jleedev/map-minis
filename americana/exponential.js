@@ -81,7 +81,6 @@ const addInterpolationStops = (stops, base, labels) => {
 };
 
 export const unionInterpolationStops = (obj_list, base) => {
-  console.trace(obj_list);
   // [{ id, stops }]
   const allLabels = [...new Set(obj_list.flatMap(obj => getStopLabels(obj.stops)))].sort((a, b) => a - b);
   return [obj_list.map(obj => ({

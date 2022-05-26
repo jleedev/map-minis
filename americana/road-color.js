@@ -147,7 +147,6 @@ const buildRoadColorCases = getter => label => [
     ...roadColor.flatMap((obj) => {
       const theCase = buildCase(obj.id);
       let theValue = getter(obj);
-      console.log(theCase, '->', theValue);
       const varify = (v) => ["var", makeVar(label, v)];
       const shouldVarify = (v) => (typeof v == "string" && !v.match('^hsl'));
       const mayVarify = (v) => shouldVarify(v) ? varify(v) : v;
@@ -157,7 +156,6 @@ const buildRoadColorCases = getter => label => [
       } else {
         theValue = mayVarify(theValue);
       }
-      console.log('->', theValue);
       return [
         theCase,
         theValue,
