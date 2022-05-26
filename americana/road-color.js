@@ -116,8 +116,12 @@ const roadColor = [
     ],
     surface: `hsl(${tollRoadHue}, 95%, 80%)`,
   },
-  // etc.
-  // enough to start out
+  {
+    id: "primary",
+    fill: roadFillColor(roadHue, 7, 9),
+    casing: roadCasingColor(roadHue, 7),
+    surface: `hsl(${roadHue}, 0%, 80%)`,
+  },
 ];
 
 const buildRoadColorInterpolation = (getter) => unionInterpolationStops(roadColor.flatMap(obj => {
