@@ -1,0 +1,110 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+
+<script
+  src="https://unpkg.com/maplibre-gl@2.1.9/dist/maplibre-gl.js"
+  crossorigin
+  integrity="sha512-/mQdOgZVu70W42UGCKFp8xHZRQ3jo55koRDvG7EZ1PscdqoPFm9gwcxHgU60XA/fo5hucZugnqOsbGA3HRsvNg=="
+></script>
+<link
+  href="https://unpkg.com/maplibre-gl@2.1.9/dist/maplibre-gl.css"
+  rel="stylesheet"
+  crossorigin
+  integrity="sha512-3rG/XrR5du72D9zrz70tH4kRl8DBGWt9TabqBPxncxZxw87kn07qz86wkDd23cvuqSUiXw+larY8C4GO5wjrIw=="
+/>
+
+<body style="margin: 0">
+  <div id="map" style="position: absolute; width: 100%; height: 100%"></div>
+
+  <script type="module">
+    const map = window.map = new maplibregl.Map({
+      container: "map",
+      style: "./natural_earth.json",
+      center: [-80,40.44],
+      zoom: 4,
+      maxZoom: 18,
+      hash: true,
+    });
+
+    map.addControl(new maplibregl.ScaleControl());
+    map.dragRotate.disable();
+    map.touchZoomRotate.disableRotation();
+    map.touchPitch.disable();
+    map.keyboard.disableRotation();
+    map.getCanvas().focus();
+
+    let hoveredStateId;
+
+    map.once("load", () => {
+      map.setPaintProperty("states-clear", "fill-opacity",
+        [
+          "case",
+          ["boolean", ["feature-state", "hover"], false],
+          0.2,
+          0,
+        ],
+      );
+    });
+
+    map.on("mousemove", "states-clear", e => {
+      if (hoveredStateId) {
+        map.setFeatureState(
+          { source: "natural-earth", sourceLayer: "ne_10m_admin_1_states_provinces_lakes",  id: hoveredStateId },
+          { hover: false },
+        );
+      }
+      hoveredStateId = e.features[0].id;
+      map.setFeatureState(
+          { source: "natural-earth", sourceLayer: "ne_10m_admin_1_states_provinces_lakes",  id: hoveredStateId },
+        { hover: true },
+      );
+    });
+    map.on("mouseleave", "states-clear", e => {
+      if (hoveredStateId) {
+        map.setFeatureState(
+          { source: "natural-earth", sourceLayer: "ne_10m_admin_1_states_provinces_lakes",  id: hoveredStateId },
+          { hover: false },
+        );
+        hoveredStateId = null;
+      }
+    });
+    map.on("click", "states-clear", e => {
+      if (!e.features.length) {
+        return;
+      }
+      const body = document.createElement('div');
+      const br = () => document.createElement('br');
+
+      const f = e.features[0];
+
+      console.log(JSON.stringify(f.properties, undefined, 2));
+      const p = document.createElement('p');
+      p.append(f.properties.name_en);
+      if (f.properties.type_en) {
+        p.append(br(), f.properties.type_en);
+      }
+      if (f.properties.wikidataid) {
+        const a = document.createElement('a');
+        a.href = `https://www.wikidata.org/wiki/${f.properties.wikidataid}`;
+        a.append(f.properties.wikidataid);
+        a.target = '_blank';
+        p.append(br(), a);
+      }
+      if (f.properties.wikipedia) {
+        const a = document.createElement('a');
+        a.href = f.properties.wikipedia;
+        a.append(decodeURIComponent(f.properties.wikipedia));
+        a.target = '_blank';
+        p.append(br(), a);
+      }
+      body.append(p);
+
+      const popup = new maplibregl.Popup()
+        .setLngLat(e.lngLat)
+        .setDOMContent(body)
+        .addTo(map);
+      popup.once("close", () => map.getCanvas().focus());
+    });
+  </script>
+</body>

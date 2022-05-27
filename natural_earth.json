@@ -1,0 +1,204 @@
+{
+  "version": 8,
+  "glyphs": "https://fonts.openmaptiles.org/{fontstack}/{range}.pbf",
+  "sources": {
+    "natural-earth": {
+      "type": "vector",
+      "url": "https://natural-earth-x5m3uj6fcq-uc.a.run.app/services/output",
+      "promoteId": "ne_id"
+    }
+  },
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "#D8F2FF"
+      }
+    },
+    {
+      "id": "coastline",
+      "type": "line",
+      "source": "natural-earth",
+      "source-layer": "ne_10m_admin_0_countries_lakes",
+      "paint": {
+        "line-blur": 0.5,
+        "line-color": "#198EC8",
+        "line-width": [
+          "interpolate",
+          [
+            "exponential",
+            2
+          ],
+          [
+            "zoom"
+          ],
+          0,
+          2,
+          6,
+          6,
+          14,
+          9,
+          22,
+          18
+        ]
+      },
+      "layout": {
+        "line-cap": "round",
+        "line-join": "round"
+      }
+    },
+    {
+      "id": "countries",
+      "type": "fill",
+      "source": "natural-earth",
+      "source-layer": "ne_10m_admin_0_countries_lakes",
+      "paint": {
+        "fill-color": [
+          "to-color",
+          [
+            "at",
+            [
+              "get",
+              "MAPCOLOR9"
+            ],
+            [
+              "literal",
+              [
+                "#66C5CC",
+                "#F6CF71",
+                "#F89C74",
+                "#DCB0F2",
+                "#87C55F",
+                "#9EB9F3",
+                "#FE88B1",
+                "#C9DB74",
+                "#8BE0A4",
+                "#B497E7",
+                "#D3B484",
+                "#B3B3B3"
+              ]
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "countries-boundary",
+      "type": "line",
+      "source": "natural-earth",
+      "source-layer": "ne_10m_admin_0_countries_lakes",
+      "paint": {
+        "line-color": "rgba(255, 255, 255, 1)",
+        "line-width": [
+          "interpolate",
+          [
+            "exponential",
+            2
+          ],
+          [
+            "zoom"
+          ],
+          1,
+          1,
+          6,
+          2,
+          14,
+          6,
+          22,
+          12
+        ],
+        "line-opacity": [
+          "interpolate",
+          [
+            "exponential",
+            2
+          ],
+          [
+            "zoom"
+          ],
+          3,
+          0.5,
+          6,
+          1
+        ]
+      },
+      "layout": {
+        "line-cap": "round",
+        "line-join": "round"
+      }
+    },
+    {
+      "id": "states-clear",
+      "type": "fill",
+      "source": "natural-earth",
+      "source-layer": "ne_10m_admin_1_states_provinces_lakes",
+      "paint": {
+        "fill-opacity": 0
+      }
+    },
+    {
+      "id": "states-boundary",
+      "type": "line",
+      "source": "natural-earth",
+      "source-layer": "ne_10m_admin_1_states_provinces_lakes",
+      "paint": {
+        "line-color": "rgba(255, 255, 255, 1)",
+        "line-width": [
+          "interpolate",
+          [
+            "exponential",
+            2
+          ],
+          [
+            "zoom"
+          ],
+          4,
+          0.25,
+          6,
+          0.75,
+          14,
+          2,
+          22,
+          4
+        ],
+        "line-opacity": [
+          "interpolate",
+          [
+            "exponential",
+            2
+          ],
+          [
+            "zoom"
+          ],
+          3,
+          0.5,
+          6,
+          1
+        ]
+      },
+      "layout": {
+        "line-cap": "round",
+        "line-join": "round"
+      }
+    },
+    {
+      "id": "states-labels",
+      "type": "symbol",
+      "source": "natural-earth",
+      "source-layer": "state_points",
+      "layout": {
+        "text-font": [
+          "Metropolis Extra Light"
+        ],
+        "text-field": "{iso_3166_2}",
+        "text-size": 10
+      },
+      "paint": {
+        "text-halo-color": "white",
+        "text-halo-width": 0.5,
+        "text-halo-blur": 0.5
+      }
+    }
+  ]
+}
