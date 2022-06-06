@@ -1,0 +1,592 @@
+<!doctype html>
+<html>
+<head>
+
+<meta charset="utf-8" />
+<title>Display a map</title>
+
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+
+<script
+      src="https://unpkg.com/maplibre-gl@2.1.7/dist/maplibre-gl.js"
+      crossorigin integrity="sha512-gbL8519AKjxUDt2MQkH9X43fFWl34kv6uXVBJVj/0+QbIAOBDBCN8R3Z5GBgGuFoU3JH+t8btwF7gPK2/Y2Hvw=="
+  ></script>
+<link
+   href="https://unpkg.com/maplibre-gl@2.1.7/dist/maplibre-gl.css"
+   rel="stylesheet"
+   crossorigin integrity="sha512-3rG/XrR5du72D9zrz70tH4kRl8DBGWt9TabqBPxncxZxw87kn07qz86wkDd23cvuqSUiXw+larY8C4GO5wjrIw=="
+/>
+
+<style>
+body { margin: 0; padding: 0; }
+#map { position: absolute; top: 0; bottom: 0; width: 100%; }
+</style>
+
+</head>
+<body>
+
+<div id="map"></div>
+
+<script type=module>
+
+  let style = await (await fetch("style.json")).json();
+
+  style.layers = [];
+
+  style.layers.push({
+    "id": "background",
+    "type": "background",
+    "paint": {
+      "background-color": "blanchedalmond",
+    },
+  });
+
+  let physicalWidth = (widthMetres) => {
+    const maxZoom = 24;
+    const earthRadius = 6378137;
+    let metres_per_pixel_z0 = earthRadius * Math.PI * 2 / 1024;
+    // fudge (about 1.3)
+    metres_per_pixel_z0 /= Math.abs(Math.cos(40));
+    let metres_per_pixel_z24 = metres_per_pixel_z0 / 2**24;
+    return [
+      "interpolate",
+      ["exponential", 2],
+      ["zoom"],
+      0,
+      widthMetres / metres_per_pixel_z0,
+      24,
+      widthMetres / metres_per_pixel_z24,
+    ];
+  };
+
+  style.layers.push({
+    "id": "landuse",
+    "type": "fill",
+    "source": "openmaptiles",
+    "source-layer": "landuse",
+    "filter": [
+      "all",
+      [
+        "!",
+        [
+          "any",
+          ["==", ["get", "class"], "neighbourhood"],
+          ["==", ["get", "class"], "residential"],
+          ["==", ["get", "class"], "quarter"],
+        ],
+      ],
+    ],
+    "paint": {
+      "fill-color": "hsla(30, 50%, 50%, 0.2)",
+    }
+  });
+
+  style.layers.push({
+    "id": "landcover",
+    "type": "fill",
+    "source": "openmaptiles",
+    "source-layer": "landcover",
+    "filter": [
+      "all",
+      ["!=", ["get", "class"], "wood"],
+    ],
+    "paint": {
+      "fill-color": [
+        "match",
+        ["get", "class"],
+        "grass",
+        "hsla(90, 50%, 50%, 0.2)",
+        "hsla(30, 50%, 50%, 0.2)",
+      ],
+    }
+  });
+
+  style.layers.push({
+    "id": "park",
+    "type": "fill",
+    "source": "openmaptiles",
+    "source-layer": "park",
+    "paint": {
+      "fill-color": "hsla(30, 50%, 50%, 0.2)",
+    }
+  });
+
+  style.layers.push({
+    "id": "water",
+    "type": "fill",
+    "source": "openmaptiles",
+    "source-layer": "water",
+    "paint": {
+      "fill-color": "lightsteelblue",
+    }
+  });
+
+  [
+    {
+      "id": "stream",
+      "filter": ["all",
+        ["==", ["get", "class"], "stream"],
+      ],
+      "widthMetres": 3,
+    },
+    {
+      "id": "river",
+      "filter": ["all",
+        ["==", ["get", "class"], "river"],
+      ],
+      "widthMetres": 10,
+    },
+  ].forEach(({id, filter, widthMetres}) => {
+    style.layers.push({
+      id,
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "waterway",
+      filter,
+      "layout": {
+        "line-join": "round",
+        "line-cap": "round",
+      },
+      "paint": {
+        "line-color": "lightsteelblue",
+        "line-width": physicalWidth(widthMetres),
+      }
+    });
+  });
+
+  const handledRoadsFilter = ["any"];
+  const roadLayers = [];
+  const otherTransportLayers = [];
+  [
+    {
+      "id": "motorway",
+      "filter": ["all",
+        ["==", ["get", "class"], "motorway"],
+        ["!=", ["get", "ramp"], 1],
+      ],
+      "widthMetres": 15,
+    },
+    {
+      "id": "motorway_ramp",
+      "filter": ["all",
+        ["==", ["get", "class"], "motorway"],
+        ["==", ["get", "ramp"], 1],
+      ],
+      "widthMetres": 9,
+    },
+    {
+      "id": "trunk",
+      "filter": ["all",
+        ["==", ["get", "class"], "trunk"],
+        ["!=", ["get", "ramp"], 1],
+      ],
+      "widthMetres": 12,
+    },
+    {
+      "id": "trunk_ramp",
+      "filter": ["all",
+        ["==", ["get", "class"], "trunk"],
+        ["==", ["get", "ramp"], 1],
+      ],
+      "widthMetres": 5,
+    },
+    {
+      "id": "primary",
+      "filter": ["all",
+        ["==", ["get", "class"], "primary"],
+        ["!=", ["get", "ramp"], 1],
+      ],
+      "widthMetres": 10,
+    },
+    {
+      "id": "primary_ramp",
+      "filter": ["all",
+        ["==", ["get", "class"], "primary"],
+        ["==", ["get", "ramp"], 1],
+      ],
+      "widthMetres": 5,
+    },
+    {
+      "id": "secondary",
+      "filter": ["all",
+        ["==", ["get", "class"], "secondary"],
+        ["!=", ["get", "ramp"], 1],
+      ],
+      "widthMetres": 9,
+    },
+    {
+      "id": "secondary_ramp",
+      "filter": ["all",
+        ["==", ["get", "class"], "secondary"],
+        ["==", ["get", "ramp"], 1],
+      ],
+      "widthMetres": 5,
+    },
+    {
+      "id": "tertiary",
+      "filter": ["all",
+        ["==", ["get", "class"], "tertiary"],
+        ["!=", ["get", "ramp"], 1],
+      ],
+      "widthMetres": 8,
+    },
+    {
+      "id": "tertiary_ramp",
+      "filter": ["all",
+        ["==", ["get", "class"], "tertiary"],
+        ["==", ["get", "ramp"], 1],
+      ],
+      "widthMetres": 5,
+    },
+    {
+      "id": "minor",
+      "filter": ["all", ["==", ["get", "class"], "minor"], ],
+      "widthMetres": 6,
+    },
+    {
+      "id": "service",
+      "filter": ["all",
+        ["==", ["get", "class"], "service"],
+        ["!=", ["get", "service"], "parking_aisle"],
+        ["!=", ["get", "service"], "driveway"],
+      ],
+      "widthMetres": 5,
+    },
+    {
+      "id": "parking_aisle",
+      "filter": ["all",
+        ["==", ["get", "class"], "service"],
+        ["==", ["get", "service"], "parking_aisle"],
+      ],
+      "widthMetres": 3.5,
+    },
+    {
+      "id": "driveway",
+      "filter": ["all",
+        ["==", ["get", "class"], "service"],
+        ["==", ["get", "service"], "driveway"],
+      ],
+      "widthMetres": 3,
+    },
+  ].forEach(({id, filter, widthMetres, color=null}) => {
+    handledRoadsFilter.push(filter);
+    roadLayers.push({
+      id,
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "filter": [
+        ...filter,
+        ["in", ["geometry-type"], ["literal", ["LineString", "MultiLineString"]]],
+      ],
+      "layout": {
+        "line-join": "round",
+        "line-cap": "round",
+      },
+      "paint": {
+        "line-color": color ?? `hsla(180, 0%, 100%, 1)`,
+        "line-width": physicalWidth(widthMetres),
+      },
+    });
+  });
+
+  [
+    {
+      "id": "path",
+      "filter": ["all", ["==", ["get", "class"], "path"], ],
+      "widthMetres": 1.5,
+      "color": `hsla(180, 55%, 95%, 1)`,
+    },
+    {
+      "id": "track",
+      "filter": ["all", ["==", ["get", "class"], "track"], ],
+      "widthMetres": 1.5,
+    },
+    {
+      "id": "busway",
+      "filter": ["all", ["==", ["get", "class"], "busway"], ],
+      "widthMetres": 8,
+      "color": `hsla(120, 50%, 50%, 0.9)`,
+    },
+    {
+      "id": "transit",
+      "filter": ["all", ["==", ["get", "class"], "transit"], ],
+      "widthMetres": 2.5,
+      "color": `hsla(210, 50%, 50%, 0.9)`,
+    },
+    {
+      "id": "rail",
+      "filter": ["all", ["==", ["get", "class"], "rail"], ],
+      "widthMetres": 2,
+      "color": `hsla(240, 50%, 50%, 0.9)`,
+    },
+  ].forEach(({id, filter, widthMetres, color=null}) => {
+    handledRoadsFilter.push(filter);
+    otherTransportLayers.push({
+      id,
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "filter": [
+        ...filter,
+        ["in", ["geometry-type"], ["literal", ["LineString", "MultiLineString"]]],
+      ],
+      "layout": {
+        "line-join": "round",
+        "line-cap": "round",
+      },
+      "paint": {
+        "line-color": color ?? `hsla(180, 0%, 100%, 1)`,
+        "line-width": physicalWidth(widthMetres),
+      },
+    });
+  });
+
+  otherTransportLayers.push({
+    "id": "transportation-else",
+    "type": "line",
+    "source": "openmaptiles",
+    "source-layer": "transportation",
+    "filter": [
+      "all",
+      ["!", handledRoadsFilter],
+      ["in", ["geometry-type"], ["literal", ["LineString", "MultiLineString"]]],
+    ],
+    "layout": {
+      "line-join": "round",
+      "line-cap": "round",
+    },
+    "paint": {
+      "line-color": `hsla(330, 100%, 50%, 0.9)`,
+      "line-width": physicalWidth(5),
+    },
+  });
+
+  style.layers.push(...roadLayers.flatMap(x => {
+    const r = [];
+    if (x.type == 'line') {
+      for (const [n, t] of [
+        [0, [1, 1]],
+        [1, [-1, 1]],
+        [2, [-1, -1]],
+        [3, [1, -1]],
+      ]) {
+        r.push({
+          ...x,
+          id: `${x.id}-blur${n}`,
+          paint: {
+            ...x.paint,
+            'line-opacity': [
+              'interpolate',
+              ['exponential', 2],
+              ['zoom'],
+              12,
+              0,
+              14,
+              1,
+            ],
+            'line-blur': 4,
+            'line-color': 'black',
+            'line-translate': t,
+          },
+        });
+      }
+    }
+    return r;
+  }));
+  style.layers.push(...otherTransportLayers);
+  style.layers.push(...roadLayers);
+
+  style.layers.push({
+    "id": "transportation-fill",
+    "type": "fill",
+    "source": "openmaptiles",
+    "source-layer": "transportation",
+    "filter": [
+      "all",
+      ["in", ["geometry-type"], ["literal", ["Polygon", "MultiPolygon"]]],
+    ],
+    "paint": {
+      "fill-color": `hsla(180, 0%, 100%, 0.9)`,
+    },
+  });
+
+  const roadLabelLayers = [{
+    "id": `road-label`,
+    "type": "symbol",
+    "source": "openmaptiles",
+    "source-layer": "transportation_name",
+    "filter": handledRoadsFilter,
+    "minzoom": 14,
+    "layout": {
+      "text-field": "{name}",
+      "text-font": ["Metropolis Bold"],
+      "symbol-placement": "line",
+      "text-max-angle": 45,
+      "text-transform": "uppercase",
+      "text-size": 12,
+    },
+    "paint": {
+      "text-halo-color": "white",
+      "text-halo-width": 1,
+      "text-halo-blur": 1,
+      "text-translate": [0, 2],
+    },
+  }];
+
+  style.layers.push({
+    "id": "building",
+    "type": "fill",
+    "source": "openmaptiles",
+    "source-layer": "building",
+    "paint": {
+      "fill-color": "silver",
+      "fill-outline-color": "hsla(0, 0, 0.3, 0.4)",
+    }
+  });
+
+  style.layers.push(...roadLabelLayers);
+
+  /*
+  style.layers.push({
+    "id": "housenumber",
+    "type": "symbol",
+    "source": "openmaptiles",
+    "source-layer": "housenumber",
+    "layout": {
+      "text-field": "{housenumber}",
+      "text-font": ["Metropolis Light"],
+      "text-size": 8,
+      "symbol-placement": "point",
+    },
+    "paint": {
+      "text-color": "#000000",
+      "text-halo-width": 1.5,
+      "text-halo-blur": 0.5,
+      "text-halo-color": "silver",
+      "text-opacity": [
+        "interpolate",
+        ["exponential", 2],
+        ["zoom"],
+        14,
+        0,
+        18,
+        1,
+      ],
+    },
+  });
+  */
+
+  style.layers.push({
+    "id": "poi-text",
+    "type": "symbol",
+    "source": "openmaptiles",
+    "source-layer": "poi",
+    "filter": [
+      "any",
+      [
+        "in",
+        ["get", "class"],
+        ["literal", ["university", "college", "school", "museum", "cemetery", "stadium", "police", "library", "park", "town_hall", "place_of_worship", "theatre", "cinema", "theme_park", "hospital", "attraction", "aquarium"]],
+      ],
+      [
+        "all",
+        ["==", ["get", "class"], "post"],
+        ["==", ["get", "subclass"], "post_office"],
+      ],
+      [
+        "all",
+        ["==", ["get", "class"], "shop"],
+        ["==", ["get", "subclass"], "mall"],
+      ],
+    ],
+    "layout": {
+      "text-field": "{name}",
+      "text-font": ["Metropolis Light"],
+      "symbol-sort-key": ["get", "rank"],
+      "text-size": [
+        "match",
+        ["get", "class"],
+        ["university", "college"],
+        15,
+        11,
+      ],
+      "symbol-placement": "point",
+    },
+    "paint": {
+      "text-color": "#000000",
+      "text-halo-width": 1.5,
+      "text-halo-blur": 0.5,
+      "text-halo-color": [
+        "match",
+        ["get", "class"],
+        "park",
+        "palegreen",
+        "bisque",
+      ]
+    }
+  });
+
+  style.layers.push({
+    "id": "place-text",
+    "type": "symbol",
+    "source": "openmaptiles",
+    "source-layer": "place",
+    "filter": [
+      "match",
+      ["get", "class"],
+      "city",
+      ["<", ["zoom"], 14],
+      "town",
+      ["<", ["zoom"], 15],
+      "village",
+      ["<", ["zoom"], 16],
+      true,
+    ],
+    "layout": {
+      "text-field": "{name}",
+      "text-font": ["Metropolis Light"],
+      "text-size": [
+        "match",
+        ["get", "class"],
+        "city",
+        25,
+        "town",
+        20,
+        "village",
+        15,
+        "hamlet",
+        12,
+        "neighbourhood",
+        10,
+        15,
+      ],
+      "symbol-placement": "point",
+    },
+    "paint": {
+      "text-color": "#000000",
+      "text-halo-width": 1.5,
+      "text-halo-blur": 0.5,
+      "text-halo-color": "#ffffff",
+    }
+  });
+
+  var map = window.map = new maplibregl.Map({
+    container: 'map',
+    style,
+    center: [-80.044, 40.382],
+    zoom: 17,
+    hash: true,
+  });
+  map.addControl(new maplibregl.ScaleControl());
+  map.dragRotate.disable();
+  map.touchZoomRotate.disableRotation();
+  map.touchPitch.disable();
+  map.keyboard.disableRotation();
+  map.getCanvas().focus();
+
+</script>
+
+</body>
+</html>
+
