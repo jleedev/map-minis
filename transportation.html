@@ -35,8 +35,11 @@ body { margin: 0; padding: 0; }
 
   let physicalWidth = (widthMetres) => {
     const maxZoom = 24;
-    const metres_per_pixel_z24 = 0.002970051486045122;
-    const metres_per_pixel_z0 = 313086.06;
+    const earthRadius = 6378137;
+    let metres_per_pixel_z0 = earthRadius * Math.PI * 2 / 1024;
+    // fudge (about 1.3)
+    metres_per_pixel_z0 /= Math.abs(Math.cos(40));
+    let metres_per_pixel_z24 = metres_per_pixel_z0 / 2**24;
     return [
       "interpolate",
       ["exponential", 2],
@@ -61,8 +64,8 @@ body { margin: 0; padding: 0; }
     },
     "paint": {
       "text-color": "#000000",
-      "text-halo-width": 2,
-      "text-halo-blur": 0,
+      "text-halo-width": 1.5,
+      "text-halo-blur": 0.5,
       "text-halo-color": "#ffffff",
     }
   });
@@ -148,6 +151,7 @@ body { margin: 0; padding: 0; }
     });
   });
 
+  const handledRoadsFilter = ["any"];
   [
     {
       "id": "motorway",
@@ -265,6 +269,11 @@ body { margin: 0; padding: 0; }
       "widthMetres": 1.5,
     },
     {
+      "id": "track",
+      "filter": ["all", ["==", ["get", "class"], "track"], ],
+      "widthMetres": 1.5,
+    },
+    {
       "id": "busway",
       "filter": ["all", ["==", ["get", "class"], "busway"], ],
       "widthMetres": 8,
@@ -283,6 +292,7 @@ body { margin: 0; padding: 0; }
       "hue": 240,
     },
   ].forEach(({id, filter, widthMetres, hue=180}) => {
+    handledRoadsFilter.push(filter);
     style.layers.push({
       id,
       "type": "line",
@@ -301,6 +311,25 @@ body { margin: 0; padding: 0; }
         "line-width": physicalWidth(widthMetres),
       },
     });
+  });
+  style.layers.push({
+    "id": "transportation-else",
+    "type": "line",
+    "source": "openmaptiles",
+    "source-layer": "transportation",
+    "filter": [
+      "all",
+      ["!", handledRoadsFilter],
+      ["in", ["geometry-type"], ["literal", ["LineString", "MultiLineString"]]],
+    ],
+    "layout": {
+      "line-join": "round",
+      "line-cap": "round",
+    },
+    "paint": {
+      "line-color": `hsla(180, 50%, 50%, 0.2)`,
+      "line-width": physicalWidth(1),
+    },
   });
 
   style.layers.push({
