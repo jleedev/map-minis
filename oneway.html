@@ -1,0 +1,160 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Display a map</title>
+<meta name=viewport content="initial-scale=1,maximum-scale=1,user-scalable=no">
+
+<script src="https://unpkg.com/maplibre-gl@2.1.9/dist/maplibre-gl.js"></script>
+<link rel=stylesheet href="https://unpkg.com/maplibre-gl@2.1.9/dist/maplibre-gl.css">
+
+<style>
+  body { margin: 0; padding: 0; }
+  #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+  #info_container { position: absolute; width: 100%; height: 100%; pointer-events: none; display: flex; align-items: center; justify-content: center; }
+  #info { pointer-events: initial; color: black; background: white; }
+</style>
+
+<div id="map"></div>
+<script type=module>
+
+const style = await (await fetch("./style.json")).json();
+style.layers = [
+  {
+    id: "water",
+    "type": "fill",
+    "source": "openmaptiles",
+    "source-layer": "water",
+    "paint": {
+      "fill-color": "lightsteelblue",
+    },
+  },
+];
+
+const map = new maplibregl.Map({
+  container: "map",
+  style,
+  center: [-97.65385, 30.69664],
+  zoom: 14,
+  hash: true,
+});
+map.showTileBoundaries = true;
+map.getCanvas().focus();
+
+Object.assign(new Image(), {
+  src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 128 128"><rect width="128" height="128"></rect><path d="M0 0L64 64 0 128 64 128 128 64 64 0 0 0" fill="yellow"></path></svg>',
+}).addEventListener("load", (e) => map.addImage("chevron", e.target));
+
+const once = (obj, evt) => new Promise((resolve) => obj.once(evt, resolve));
+await once(map, "load");
+
+map.addLayer({
+  id: "transportation-area",
+  type: "fill",
+  source: "openmaptiles",
+  filter: [
+    "all",
+    ["in", ["geometry-type"], ["literal", ["Polygon", "MultiPolygon"]]],
+  ],
+  "source-layer": "transportation",
+  "paint": {
+    "fill-color": "linen",
+  },
+});
+
+map.addLayer({
+  id: "transportation-line",
+  type: "line",
+  source: "openmaptiles",
+  filter: [
+    "all",
+    ["in", ["geometry-type"], ["literal", ["LineString", "MultiLineString"]]],
+  ],
+  "source-layer": "transportation",
+  paint: {
+    "line-width": 0.5,
+    "line-blur": 0.25,
+  },
+});
+
+const activeFeatures = [];
+const onClick = (event) => {
+  activeFeatures.splice(0).map(feature => {
+    map.removeFeatureState(
+      {source: "openmaptiles", sourceLayer: "transportation", id: feature.id},
+      "active",
+    );
+  });
+  event.features.forEach((feature) => {
+    map.setFeatureState(
+      {source: "openmaptiles", sourceLayer: "transportation", id: feature.id},
+      {active: true},
+    );
+    activeFeatures.push(feature);
+  });
+  const info = document.querySelector("#info");
+  info.textContent = '';
+  activeFeatures.forEach((feat, index) => {
+    info.append(`${feat.id} - ${JSON.stringify(feat.properties)}`);
+    if (index < activeFeatures.length - 1) {
+      info.append(document.createElement("br"));
+    }
+  });
+};
+
+[-1, 0, 1, 2, 3].forEach((layer) => {
+  const getLayer = ["number", ["get", "layer"], 0];
+  const op = layer == -1 ? "<=" : layer == 3 ? ">=" : "==";
+  const layerFilter = [op, getLayer, layer];
+  map.addLayer({
+    id: `road_${layer}_casing`,
+    type: "line",
+    source: "openmaptiles",
+    "source-layer": "transportation",
+    filter: ["all", layerFilter, ["==", ["get", "oneway"], 1]],
+    paint: {
+      "line-width": 10,
+      "line-blur": 0.5,
+      "line-color": [
+        "case",
+        ["boolean", ["feature-state", "active"], false],
+        "magenta",
+        "black",
+      ],
+      "line-opacity": [
+        "case",
+        ["boolean", ["feature-state", "active"], false],
+        1,
+        0.1,
+      ],
+    },
+  });
+  map.on("click", `road_${layer}_casing`, onClick, `road_${layer}_casing`);
+  map.addLayer({
+    id: `road_${layer}`,
+    type: "line",
+    source: "openmaptiles",
+    "source-layer": "transportation",
+    filter: ["all", layerFilter, ["==", ["get", "oneway"], 1]],
+    paint: {
+      "line-pattern": ["image", "chevron"],
+      "line-width": 6,
+      "line-blur": 0.5,
+      "line-opacity": [
+        "case",
+        ["boolean", ["feature-state", "active"], false],
+        1,
+        0.1,
+      ],
+    },
+  });
+});
+
+window.map = map;
+
+</script>
+
+<div id=info_container>
+  <div id=info></div>
+</div>
+
+</body>
+</html>
