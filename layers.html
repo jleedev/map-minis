@@ -34,7 +34,19 @@
         },
       });
 
-      const baseLayer = {
+      const casingColor = [
+        "interpolate-lab",
+        ["linear"],
+        ["number", ["get", "layer"], 0],
+        -5,
+        "maroon",
+        0,
+        "bisque",
+        5,
+        "aliceblue",
+      ];
+
+      const baseLineLayer = {
         type: "line",
         source: "openmaptiles",
         filter: [
@@ -46,12 +58,31 @@
         },
       };
 
+      const baseAreaLayer = {
+        type: "fill",
+        source: "openmaptiles",
+        filter: [
+          "all",
+          ["in", ["geometry-type"], ["literal", ["Polygon", "MultiPolygon"]]],
+        ],
+      };
+
+      const bridgeBase = {
+        ...baseAreaLayer,
+        id: "bridge",
+        "source-layer": "transportation",
+        paint: {
+          "fill-color": casingColor,
+          "fill-opacity": 0.9,
+        },
+      };
+
       const transportationBase = {
-        ...baseLayer,
+        ...baseLineLayer,
         "id": "transportation",
         "source-layer": "transportation",
         "paint": {
-          ...baseLayer.paint,
+          ...baseLineLayer.paint,
           "line-color": [
             "match",
             ["get", "class"],
@@ -83,65 +114,68 @@
       };
 
       const waterwayBase = {
-        ...baseLayer,
+        ...baseLineLayer,
         "id": "waterway",
         "source-layer": "waterway",
         "paint": {
-          ...baseLayer.paint,
+          ...baseLineLayer.paint,
           "line-color": "blue",
         },
       };
 
       const aerowayBase = {
-        ...baseLayer,
+        ...baseLineLayer,
         "id": "aeroway",
         "source-layer": "aeroway",
         "paint": {
-          ...baseLayer.paint,
+          ...baseLineLayer.paint,
           "line-color": "silver",
         },
       };
 
-      const buildLayer = (template, layer_value) => {
+      const buildAreaLayer = (template, layer_value) => {
+        const localLayer = {
+          ...template,
+          filter: [...template.filter],
+        };
+        const layerFilters = ["any"];
+        layerFilters.push(
+          ["==", ["get", "layer"], layer_value],
+        );
+        switch (layer_value) {
+          case 0:
+            layerFilters.push(
+              ["!", ["has", "layer"]],
+            );
+            break;
+        }
+        localLayer.filter.push(layerFilters);
+        const bridgeArea = {
+          ...localLayer,
+          id: `${localLayer.id}-${layer_value}-bridgeArea`,
+          filter: [
+            "all",
+            localLayer.filter,
+            ["==", ["get", "class"], ["literal", "bridge"]],
+          ],
+        };
+        return {bridgeArea};
+      };
+
+      const buildLineLayer = (template, layer_value) => {
         const localLayer = {
           ...template,
           filter: [...template.filter],
         };
 
         const layerFilters = ["any"];
-        // Has explicit layer or lacks layer and we're
-        // on the assumed bridge=1 or tunnel=-1 layers
         layerFilters.push(
           ["==", ["get", "layer"], layer_value],
         );
-        switch (layer_value) {
-          case 1:
-            layerFilters.push(
-              [
-                "all",
-                ["!", ["has", "layer"]],
-                ["==", ["get", "brunnel"], "bridge"],
-              ],
-            );
-            break;
-          case 0:
-            layerFilters.push(
-              [
-                "all",
-                ["!", ["has", "layer"]],
-                ["!", ["has", "brunnel"]],
-              ],
-            );
-            break;
-          case -1:
-            layerFilters.push(
-              [
-                "all",
-                ["!", ["has", "layer"]],
-                ["==", ["get", "brunnel"], "tunnel"],
-              ],
-            );
-            break;
+        if (layer_value == 0) {
+          layerFilters.push(
+            ["!", ["has", "layer"]],
+          );
         }
         localLayer.filter.push(layerFilters);
 
@@ -150,17 +184,7 @@
           id: `${localLayer.id}-${layer_value}-casing`,
           paint: {
             ...localLayer.paint,
-            "line-color": [
-              "interpolate-lab",
-              ["linear"],
-              ["number", ["get", "layer"], 0],
-              -5,
-              "maroon",
-              0,
-              "bisque",
-              5,
-              "aliceblue",
-            ],
+            "line-color": casingColor,
             "line-width": [
               "interpolate",
               ["exponential", 2],
@@ -220,6 +244,7 @@
       const layers = [];
       for (const layer_value of layer_values) {
         const thisLayerCasing = [];
+        const thisLayerBridgeArea = [];
         const thisLayerBridgeCasing = [];
         const thisLayerStroke = [];
         const thisLayerTunnelStroke = [];
@@ -233,13 +258,16 @@
         if (layer_value == 0) {
           templates.push(aerowayBase);
         }
+        const {bridgeArea} = buildAreaLayer(bridgeBase, layer_value);
+        thisLayerBridgeArea.push(bridgeArea);
         for (const template of templates) {
-          const {casing, bridgeCasing, stroke, tunnelStroke} = buildLayer(template, layer_value);
+          const {casing, bridgeCasing, stroke, tunnelStroke} = buildLineLayer(template, layer_value);
           thisLayerCasing.push(casing);
           thisLayerCasing.push(bridgeCasing);
           thisLayerStroke.push(stroke);
           thisLayerTunnelStroke.push(tunnelStroke);
         }
+        layers.push(...thisLayerBridgeArea);
         layers.push(...thisLayerCasing);
         layers.push(...thisLayerBridgeCasing);
         layers.push(...thisLayerStroke);
