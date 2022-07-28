@@ -46,6 +46,44 @@
         "aliceblue",
       ];
 
+      const casingWidth = [
+        "interpolate",
+        ["exponential", 2],
+        ["zoom"],
+        14,
+        10,
+        18,
+        20,
+      ];
+
+      const transportationColor = [
+        "match",
+        ["get", "class"],
+        "motorway",
+        "red",
+        "trunk",
+        "red",
+        "primary",
+        "indianred",
+        "secondary",
+        "indianred",
+        "tertiary",
+        "indianred",
+        "minor",
+        "pink",
+        "service",
+        "pink",
+        "track",
+        "pink",
+        "path",
+        "mediumaquamarine",
+        "rail",
+        "goldenrod",
+        "transit",
+        "goldenrod",
+        "fuchsia",
+      ];
+
       const baseLineLayer = {
         type: "line",
         source: "openmaptiles",
@@ -65,15 +103,23 @@
           "all",
           ["in", ["geometry-type"], ["literal", ["Polygon", "MultiPolygon"]]],
         ],
+        paint: {
+          "fill-opacity": 0.9,
+        },
       };
 
       const bridgeBase = {
+        surface: false,
         ...baseAreaLayer,
         id: "bridge",
         "source-layer": "transportation",
+        filter: [
+          ...baseAreaLayer.filter,
+          ["==", ["get", "class"], ["literal", "bridge"]],
+        ],
         paint: {
+          ...baseAreaLayer.paint,
           "fill-color": casingColor,
-          "fill-opacity": 0.9,
         },
       };
 
@@ -83,33 +129,22 @@
         "source-layer": "transportation",
         "paint": {
           ...baseLineLayer.paint,
-          "line-color": [
-            "match",
-            ["get", "class"],
-            "motorway",
-            "red",
-            "trunk",
-            "red",
-            "primary",
-            "indianred",
-            "secondary",
-            "indianred",
-            "tertiary",
-            "indianred",
-            "minor",
-            "pink",
-            "service",
-            "pink",
-            "track",
-            "pink",
-            "path",
-            "mediumaquamarine",
-            "rail",
-            "goldenrod",
-            "transit",
-            "goldenrod",
-            "fuchsia",
-          ],
+          "line-color": transportationColor,
+        },
+      };
+
+      const transportationAreaBase = {
+        surface: true,
+        ...baseAreaLayer,
+        "id": "transportationArea",
+        "source-layer": "transportation",
+        "filter": [
+          ...baseAreaLayer.filter,
+          ["!=", ["get", "class"], ["literal", "bridge"]],
+        ],
+        "paint": {
+          ...baseAreaLayer.paint,
+          "fill-color": transportationColor,
         },
       };
 
@@ -123,13 +158,28 @@
         },
       };
 
-      const aerowayBase = {
+      const aerowayLineBase = {
         ...baseLineLayer,
-        "id": "aeroway",
+        "id": "aerowayLine",
         "source-layer": "aeroway",
         "paint": {
           ...baseLineLayer.paint,
           "line-color": "silver",
+        },
+      };
+
+      const aerowayAreaBase = {
+        surface: true,
+        ...baseAreaLayer,
+        "id": "aerowayArea",
+        "source-layer": "aeroway",
+        filter: [
+          ...baseAreaLayer.filter,
+          ["in", ["get", "class"], ["literal", ["taxiway", "runway"]]],
+        ],
+        "paint": {
+          ...baseAreaLayer.paint,
+          "fill-color": "silver",
         },
       };
 
@@ -150,16 +200,24 @@
             break;
         }
         localLayer.filter.push(layerFilters);
-        const bridgeArea = {
+        const layerFill = {
           ...localLayer,
-          id: `${localLayer.id}-${layer_value}-bridgeArea`,
-          filter: [
-            "all",
-            localLayer.filter,
-            ["==", ["get", "class"], ["literal", "bridge"]],
-          ],
+          id: `${localLayer.id}-${layer_value}`,
         };
-        return {bridgeArea};
+        const layerStroke = {
+          ...localLayer,
+          "type": "line",
+          id: `${localLayer.id}-${layer_value}-stroke`,
+          "paint": {
+            "line-color": casingColor,
+            "line-width": casingWidth,
+          },
+        };
+        return {
+          layerFill: (!template.surface) ? layerFill : undefined,
+          layerStroke,
+          layerSurface: (template.surface) ? layerFill : undefined,
+          };
       };
 
       const buildLineLayer = (template, layer_value) => {
@@ -185,15 +243,7 @@
           paint: {
             ...localLayer.paint,
             "line-color": casingColor,
-            "line-width": [
-              "interpolate",
-              ["exponential", 2],
-              ["zoom"],
-              14,
-              10,
-              18,
-              20,
-            ],
+            "line-width": casingWidth,
           },
         };
         const bridgeCasing = {
@@ -244,22 +294,34 @@
       const layers = [];
       for (const layer_value of layer_values) {
         const thisLayerCasing = [];
-        const thisLayerBridgeArea = [];
+        const thisLayerAreaFill = [];
+        const thisLayerAreaStroke = [];
+        const thisLayerAreaSurface = [];
         const thisLayerBridgeCasing = [];
         const thisLayerStroke = [];
         const thisLayerTunnelStroke = [];
         // No layers until z9
         // But put water first, at least
         const templates = [];
+        const areaTemplates = [];
         if (layer_value >= -1 && layer_value <= 1) {
           templates.push(waterwayBase);
         }
         templates.push(transportationBase);
         if (layer_value == 0) {
-          templates.push(aerowayBase);
+          templates.push(aerowayLineBase);
+          areaTemplates.push(aerowayAreaBase);
         }
-        const {bridgeArea} = buildAreaLayer(bridgeBase, layer_value);
-        thisLayerBridgeArea.push(bridgeArea);
+        areaTemplates.push(bridgeBase);
+        areaTemplates.push(transportationAreaBase);
+        for (const template of areaTemplates) {
+          const {layerFill, layerStroke, layerSurface} = buildAreaLayer(template, layer_value);
+          delete layerFill?.surface;
+          delete layerSurface?.surface;
+          thisLayerAreaFill.push(layerFill);
+          thisLayerAreaStroke.push(layerStroke);
+          thisLayerAreaSurface.push(layerSurface);
+        }
         for (const template of templates) {
           const {casing, bridgeCasing, stroke, tunnelStroke} = buildLineLayer(template, layer_value);
           thisLayerCasing.push(casing);
@@ -267,14 +329,16 @@
           thisLayerStroke.push(stroke);
           thisLayerTunnelStroke.push(tunnelStroke);
         }
-        layers.push(...thisLayerBridgeArea);
+        layers.push(...thisLayerAreaStroke);
+        layers.push(...thisLayerAreaFill);
         layers.push(...thisLayerCasing);
         layers.push(...thisLayerBridgeCasing);
+        layers.push(...thisLayerAreaSurface);
         layers.push(...thisLayerStroke);
         layers.push(...thisLayerTunnelStroke);
       }
 
-      style.layers.push(...layers);
+      style.layers.push(...layers.filter((x) => x !== undefined));
 
       var map = (window.map = new maplibregl.Map({
         container: "map",
