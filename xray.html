@@ -15,6 +15,7 @@
 body { margin: 0; padding: 0; }
 #map { position: absolute; top: 0; bottom: 0; width: 100%; }
 #legend { position: absolute; right: 0; color: white; }
+#legend .chip { display: inline-block; width: 1ch; height: 1ch; }
 label:hover { background: gainsboro; }
 label.checked-false { text-decoration: line-through; color: silver; }
 </style>
@@ -54,7 +55,11 @@ label.checked-false { text-decoration: line-through; color: silver; }
       let pointColor = `hsla(${hue}, 50%, 50%, 0.8)`;
 
       let legendItem = document.createElement('div');
-      legendItem.innerHTML = `<label class=checked-true><input hidden checked type=checkbox name="${layer}"><div style="display:inline-block;width:1ch;height:1ch;background-color:hsl(${hue},50%,50%"></div> ${layer}</label><br>`;
+      legendItem.innerHTML = `<label class=checked-true>
+          <input hidden checked type=checkbox name="${layer}">
+          <div class=chip style="background-color:hsl(${hue},50%,50%"></div>
+          ${layer}
+        </label><br>`;
       legendForm.append(legendItem);
       legendItem.addEventListener("input", toggleLayer);
 
