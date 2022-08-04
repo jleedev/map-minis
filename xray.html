@@ -56,6 +56,11 @@ label.checked-false { text-decoration: line-through; color: silver; }
     const legendForm = document.createElement("form");
     legend.append(legendForm);
 
+    const fillLayers = [];
+    const lineLayers = [];
+    const pointLayers = [];
+    const textLayers = [];
+
     let hue = 0;
     vectorLayerIds.forEach(layer => {
 
@@ -73,7 +78,7 @@ label.checked-false { text-decoration: line-through; color: silver; }
       legendForm.append(legendItem);
       legendItem.addEventListener("input", toggleLayer);
 
-      map.addLayer({
+      pointLayers.push({
         "id": `${layer}-point`,
         "type": "circle",
         "source": "openmaptiles",
@@ -85,7 +90,7 @@ label.checked-false { text-decoration: line-through; color: silver; }
         },
       });
 
-      map.addLayer({
+      lineLayers.push({
         "id": `${layer}-line`,
         "type": "line",
         "source": "openmaptiles",
@@ -96,7 +101,7 @@ label.checked-false { text-decoration: line-through; color: silver; }
         },
       });
 
-      map.addLayer({
+      fillLayers.push({
         "id": `${layer}-area`,
         "type": "fill",
         "source": "openmaptiles",
@@ -108,7 +113,7 @@ label.checked-false { text-decoration: line-through; color: silver; }
         },
       });
 
-      map.addLayer({
+      textLayers.push({
         "id": `${layer}-text-line`,
         "type": "symbol",
         "source": "openmaptiles",
@@ -129,7 +134,7 @@ label.checked-false { text-decoration: line-through; color: silver; }
         },
       });
 
-      map.addLayer({
+      textLayers.push({
         "id": `${layer}-text-point`,
         "type": "symbol",
         "source": "openmaptiles",
@@ -150,7 +155,7 @@ label.checked-false { text-decoration: line-through; color: silver; }
         },
       });
 
-      map.addLayer({
+      textLayers.push({
         "id": `${layer}-text-area`,
         "type": "symbol",
         "source": "openmaptiles",
@@ -175,6 +180,15 @@ label.checked-false { text-decoration: line-through; color: silver; }
         },
       });
 
+    });
+
+    [
+      ...fillLayers,
+      ...lineLayers,
+      ...pointLayers,
+      ...textLayers,
+    ].forEach((layer) => {
+      map.addLayer(layer);
     });
   };
 
