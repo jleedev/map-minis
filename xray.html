@@ -3,7 +3,7 @@
 <head>
 
 <meta charset="utf-8" />
-<title>Display a map</title>
+<title>xray</title>
 
 <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
 
@@ -11,9 +11,12 @@
 <link href="https://unpkg.com/maplibre-gl@2.1.7/dist/maplibre-gl.css" rel="stylesheet" />
 
 <style>
+:root { user-select: none; }
 body { margin: 0; padding: 0; }
 #map { position: absolute; top: 0; bottom: 0; width: 100%; }
-#legend { position: absolute; right: 0; pointer-events: none; color: white }
+#legend { position: absolute; right: 0; color: white; }
+label:hover { background: gainsboro; }
+label.checked-false { text-decoration: line-through; color: silver; }
 </style>
 
 </head>
@@ -24,127 +27,100 @@ body { margin: 0; padding: 0; }
 
 <script type=module>
 
-  let cp = x => JSON.parse(JSON.stringify(x));
+  const toggleLayer = (event) => {
+    const { target: { checked, name, parentElement: label } } = event;
+    label.classList.toggle(`checked-true`, checked);
+    label.classList.toggle(`checked-false`, !checked);
+    const visibility = checked ? "visible": "none";
+    map.getStyle().layers.forEach((layer) => {
+      if (layer["source-layer"] === name) {
+        map.setLayoutProperty(layer.id, "visibility", visibility);
+      }
+    });
+  };
 
-  let style = await (await fetch('style.json')).json();
+  const loadLayers = (map, vectorLayerIds) => {
+    map.addLayer({"id":"background","type":"background","paint":{"background-color":"#000"}});
 
-  let allLayers = [
-    "water", "waterway", "landcover", "landuse", "mountain_peak", "park",
-    "boundary", "aeroway", "transportation", "building", "water_name",
-    "transportation_name", "place", "housenumber", "poi", "aerodrome_label",
-  ]; 
+    const legendForm = document.createElement("form");
+    legend.append(legendForm);
 
-  let pointLayers = [
-    "mountain_peak",
-    "water_name",
-    "poi", "aerodrome_label",
-    "transportation_name",
-  ]; 
+    let hue = 0;
+    vectorLayerIds.forEach(layer => {
 
-  let lineLayers = [
-    "water", "waterway", "landcover", "landuse", "mountain_peak", "park",
-    "boundary", "aeroway", "transportation", "building", "water_name",
-    "transportation_name",
-    "place", "housenumber", "poi", "aerodrome_label",
-  ]; 
+      hue += 25;
+      let lineColor = `hsla(${hue}, 50%, 50%, 0.7)`;
+      let fillColor = `hsla(${hue}, 50%, 50%, 0.4)`;
+      let pointColor = `hsla(${hue}, 50%, 50%, 0.8)`;
 
-  let areaLayers = [
-    "water", "landcover", "landuse", "mountain_peak", "park",
-    "building", "water_name",
-    "place", "housenumber", "poi", "aerodrome_label",
-  ]; 
+      let legendItem = document.createElement('div');
+      legendItem.innerHTML = `<label class=checked-true><input hidden checked type=checkbox name="${layer}"><div style="display:inline-block;width:1ch;height:1ch;background-color:hsl(${hue},50%,50%"></div> ${layer}</label><br>`;
+      legendForm.append(legendItem);
+      legendItem.addEventListener("input", toggleLayer);
 
-  let pointTextLayers = [
-    "mountain_peak",
-    "aeroway", "water_name",
-    "place", "housenumber", "poi", "aerodrome_label",
-    "transportation_name",
-  ]; 
-
-  let linearTextLayers = [
-    "waterway", "mountain_peak",
-    "aeroway", "water_name",
-    "transportation_name", "place", "housenumber", "poi", "aerodrome_label",
-  ]; 
-
-  style.layers = [
-    {"id":"background","type":"background","paint":{"background-color":"#000"}}
-  ];
-
-  let hue = 0;
-  allLayers.forEach(layer => {
-
-    hue += 25;
-    let lineColor = `hsla(${hue}, 50%, 50%, 0.7)`;
-    let fillColor = `hsla(${hue}, 50%, 50%, 0.4)`;
-    let pointColor = `hsla(${hue}, 50%, 50%, 0.8)`;
-
-    let legendItem = document.createElement('div');
-    legendItem.innerHTML = `<div style="display:inline-block;width:1ch;height:1ch;background-color:hsl(${hue},50%,50%"></div> ${layer}<br>`;
-    legend.append(legendItem);
-
-    if (pointLayers.find(x => x === layer)) {
-      style.layers.push({
+      map.addLayer({
         "id": `${layer}-point`,
         "type": "circle",
         "source": "openmaptiles",
         "source-layer": layer,
         "filter": [
-          "any",
-          ["==", ["geometry-type"], "Point"],
-          ["==", ["geometry-type"], "MultiPoint"],
+          "match",
+          ["geometry-type"],
+          ["Point", "MultiPoint"],
+          true,
+          false,
         ],
         "paint": {
           "circle-color": pointColor,
           "circle-pitch-alignment": "map",
         },
       });
-    }
 
-    if (lineLayers.find(x => x === layer)) {
-      style.layers.push({
+      map.addLayer({
         "id": `${layer}-line`,
         "type": "line",
         "source": "openmaptiles",
         "source-layer": layer,
         "filter": [
-          "any",
-          ["==", ["geometry-type"], "LineString"],
-          ["==", ["geometry-type"], "MultiLineString"],
+          "match",
+          ["geometry-type"],
+          ["LineString", "MultiLineString"],
+          true,
+          false,
         ],
         "paint": {
           "line-color": lineColor,
         },
       });
-    }
 
-    if (areaLayers.find(x => x === layer)) {
-      style.layers.push({
+      map.addLayer({
         "id": `${layer}-area`,
         "type": "fill",
         "source": "openmaptiles",
         "source-layer": layer,
         "filter": [
-          "any",
-          ["==", ["geometry-type"], "Polygon"],
-          ["==", ["geometry-type"], "MultiPolygon"],
+          "match",
+          ["geometry-type"],
+          ["Polygon", "MultiPolygon"],
+          true,
+          false,
         ],
         "paint": {
           "fill-color": fillColor,
         },
       });
-    }
 
-    if (linearTextLayers.find(x => x === layer)) {
-      style.layers.push({
+      map.addLayer({
         "id": `${layer}-text-line`,
         "type": "symbol",
         "source": "openmaptiles",
         "source-layer": layer,
         "filter": [
-          "any",
-          ["==", ["geometry-type"], "LineString"],
-          ["==", ["geometry-type"], "MultiLineString"],
+          "match",
+          ["geometry-type"],
+          ["LineString", "MultiLineString"],
+          true,
+          false,
         ],
         "layout": {
           "text-field": ["coalesce", ["get", "name"], ["get", "ref"], ["get", "subclass"], ["get", "class"], ["get", "admin_level"], "?"],
@@ -160,10 +136,8 @@ body { margin: 0; padding: 0; }
           "text-halo-color": lineColor,
         },
       });
-    }
 
-    if (pointTextLayers.find(x => x === layer)) {
-      style.layers.push({
+      map.addLayer({
         "id": `${layer}-text-point`,
         "type": "symbol",
         "source": "openmaptiles",
@@ -186,13 +160,13 @@ body { margin: 0; padding: 0; }
           "text-halo-color": lineColor,
         },
       });
-    }
 
-  });
+    });
+  };
 
   var map = window.map = new maplibregl.Map({
     container: 'map',
-    style,
+    style: "style.json",
     center: [0, 0],
     zoom: 1,
     hash: true,
@@ -203,6 +177,15 @@ body { margin: 0; padding: 0; }
   map.touchPitch.disable();
   map.keyboard.disableRotation();
   map.getCanvas().focus();
+
+  const onSourceLayers = () => {
+    const { vectorLayerIds } = map.getSource("openmaptiles");
+    if (vectorLayerIds) {
+      map.off("sourcedata", onSourceLayers);
+      loadLayers(map, vectorLayerIds);
+    }
+  };
+  map.on("sourcedata", onSourceLayers);
 
 </script>
 
