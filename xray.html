@@ -40,6 +40,16 @@ label.checked-false { text-decoration: line-through; color: silver; }
     });
   };
 
+  const textFields = ["name", "ref", "subclass", "class", "admin_level", "housenumber"];
+  const textFieldProperty = [
+    "coalesce",
+    ...textFields.map((x) => ["get", x]),
+  ];
+
+  const pointFilter = [ "match", ["geometry-type"], ["Point", "MultiPoint"], true, false, ];
+  const lineFilter = [ "match", ["geometry-type"], ["LineString", "MultiLineString"], true, false, ];
+  const polygonFilter = [ "match", ["geometry-type"], ["Polygon", "MultiPolygon"], true, false, ];
+
   const loadLayers = (map, vectorLayerIds) => {
     map.addLayer({"id":"background","type":"background","paint":{"background-color":"#000"}});
 
@@ -68,13 +78,7 @@ label.checked-false { text-decoration: line-through; color: silver; }
         "type": "circle",
         "source": "openmaptiles",
         "source-layer": layer,
-        "filter": [
-          "match",
-          ["geometry-type"],
-          ["Point", "MultiPoint"],
-          true,
-          false,
-        ],
+        "filter": pointFilter,
         "paint": {
           "circle-color": pointColor,
           "circle-pitch-alignment": "map",
@@ -86,13 +90,7 @@ label.checked-false { text-decoration: line-through; color: silver; }
         "type": "line",
         "source": "openmaptiles",
         "source-layer": layer,
-        "filter": [
-          "match",
-          ["geometry-type"],
-          ["LineString", "MultiLineString"],
-          true,
-          false,
-        ],
+        "filter": lineFilter,
         "paint": {
           "line-color": lineColor,
         },
@@ -103,13 +101,7 @@ label.checked-false { text-decoration: line-through; color: silver; }
         "type": "fill",
         "source": "openmaptiles",
         "source-layer": layer,
-        "filter": [
-          "match",
-          ["geometry-type"],
-          ["Polygon", "MultiPolygon"],
-          true,
-          false,
-        ],
+        "filter": polygonFilter,
         "paint": {
           "fill-color": fillColor,
           "fill-outline-color": lineColor,
@@ -121,15 +113,9 @@ label.checked-false { text-decoration: line-through; color: silver; }
         "type": "symbol",
         "source": "openmaptiles",
         "source-layer": layer,
-        "filter": [
-          "match",
-          ["geometry-type"],
-          ["LineString", "MultiLineString"],
-          true,
-          false,
-        ],
+        "filter": lineFilter,
         "layout": {
-          "text-field": ["coalesce", ["get", "name"], ["get", "ref"], ["get", "subclass"], ["get", "class"], ["get", "admin_level"], "?"],
+          "text-field": [...textFieldProperty, "?"],
           "text-font": ["Metropolis Light"],
           "text-size": 10,
           "symbol-placement": "line",
@@ -148,16 +134,38 @@ label.checked-false { text-decoration: line-through; color: silver; }
         "type": "symbol",
         "source": "openmaptiles",
         "source-layer": layer,
-        "filter": [
-          "any",
-          ["==", ["geometry-type"], "Point"],
-          ["==", ["geometry-type"], "MultiPoint"],
-        ],
+        "filter": pointFilter,
         "layout": {
-          "text-field": ["coalesce", ["get", "name"], ["get", "ref"], ["get", "subclass"], ["get", "class"], ["get", "admin_level"], ["get", "housenumber"], "?"],
+          "text-field": [...textFieldProperty, "?"],
           "text-font": ["Metropolis Light"],
           "text-size": 10,
+          "text-variable-anchor": ["center", "left", "right", "top", "bottom", "top-left", "top-right", "bottom-left", "bottom-right"],
           "symbol-placement": "point",
+        },
+        "paint": {
+          "text-color": "#000000",
+          "text-halo-width": 2,
+          "text-halo-blur": 2,
+          "text-halo-color": lineColor,
+        },
+      });
+
+      map.addLayer({
+        "id": `${layer}-text-area`,
+        "type": "symbol",
+        "source": "openmaptiles",
+        "source-layer": layer,
+        "filter": polygonFilter,
+        "layout": {
+          "text-field": [...textFieldProperty],
+          "text-font": ["Metropolis Light"],
+          "text-size": 10,
+          "symbol-placement": "line",
+          "symbol-spacing": 1,
+          "text-anchor": "top",
+          "text-keep-upright": false,
+          "text-radial-offset": 1.25,
+          "text-max-angle": 360,
         },
         "paint": {
           "text-color": "#000000",
