@@ -18,11 +18,5 @@
       "url": "https://6ug7hetxl9.execute-api.us-east-2.amazonaws.com/data/v3.json"
     }
   },
-  "layers": [
-    {
-      "id": "tiles",
-      "type": "raster",
-      "source": "raster-tiles"
-    }
-  ]
+  "layers": []
 }
