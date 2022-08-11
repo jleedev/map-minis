@@ -129,6 +129,74 @@
       }
     },
     {
+      "id": "countries-boundary-text",
+      "type": "symbol",
+      "source": "natural-earth",
+      "source-layer": "ne_10m_admin_0_countries_lakes",
+      "minzoom": 4,
+      "layout": {
+        "symbol-placement": "line",
+        "symbol-spacing": [
+          "interpolate",
+          [
+            "exponential",
+            0.5
+          ],
+          [
+            "zoom"
+          ],
+          7,
+          50,
+          12,
+          250
+        ],
+        "text-field": [
+          "get",
+          "ABBREV"
+        ],
+        "text-font": [
+          "Metropolis Extra Bold"
+        ],
+        "text-radial-offset": 1.4,
+        "text-max-angle": 360,
+        "text-anchor": "top",
+        "text-line-height": 0.4,
+        "text-size": 12
+      },
+      "paint": {
+        "text-color": [
+          "to-color",
+          [
+            "at",
+            [
+              "get",
+              "MAPCOLOR9"
+            ],
+            [
+              "literal",
+              [
+                "#66C5CC",
+                "#F6CF71",
+                "#F89C74",
+                "#DCB0F2",
+                "#87C55F",
+                "#9EB9F3",
+                "#FE88B1",
+                "#C9DB74",
+                "#8BE0A4",
+                "#B497E7",
+                "#D3B484",
+                "#B3B3B3"
+              ]
+            ]
+          ]
+        ],
+        "text-halo-color": "#fff",
+        "text-halo-width": 1,
+        "text-halo-blur": 0.25
+      }
+    },
+    {
       "id": "states-clear",
       "type": "fill",
       "source": "natural-earth",
@@ -183,6 +251,18 @@
       }
     },
     {
+      "id": "states-circles",
+      "type": "circle",
+      "source": "natural-earth",
+      "source-layer": "state_points",
+      "paint": {
+        "circle-radius": 1.25,
+        "circle-stroke-color": "#fff",
+        "circle-stroke-width": 1.25,
+        "circle-blur": 0.25
+      }
+    },
+    {
       "id": "states-labels",
       "type": "symbol",
       "source": "natural-earth",
@@ -192,12 +272,25 @@
           "Metropolis Extra Light"
         ],
         "text-field": "{iso_3166_2}",
-        "text-size": 10
+        "text-size": 10,
+        "text-variable-anchor": [
+          "left",
+          "right",
+          "top",
+          "bottom",
+          "top-left",
+          "top-right",
+          "bottom-left",
+          "bottom-right"
+        ],
+        "text-justify": "auto",
+        "text-line-height": 1,
+        "text-padding": 4
       },
       "paint": {
         "text-halo-color": "white",
-        "text-halo-width": 0.5,
-        "text-halo-blur": 0.5
+        "text-halo-width": 0.75,
+        "text-halo-blur": 0.75
       }
     }
   ]

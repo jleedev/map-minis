@@ -1,6 +1,7 @@
 <!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width">
+<title>natural_earth</title>
 
 <script
   src="https://unpkg.com/maplibre-gl@2.1.9/dist/maplibre-gl.js"
@@ -25,6 +26,7 @@
       zoom: 4,
       maxZoom: 18,
       hash: true,
+      fadeDuration: 0,
     });
 
     map.addControl(new maplibregl.ScaleControl());
