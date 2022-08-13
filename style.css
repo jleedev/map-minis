@@ -21,3 +21,10 @@ figure a::after {
 figure a:hover::after {
   background: #ff00ff33;
 }
+figure a:focus {
+  outline: none;
+}
+figure a:focus-visible::after {
+  outline: 2px solid;
+  border-radius: 2px;
+}
