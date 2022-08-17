@@ -28,7 +28,55 @@ label.checked-false { text-decoration: line-through; color: silver; }
 
 <script type=module>
 
-  const toggleLayer = (event) => {
+  const getFormElements = Object.getOwnPropertyDescriptor(HTMLFormElement.prototype, "elements").get;
+
+  const applyInputByName = (name, effect) => {
+    const form = legend.querySelector("form");
+    const elements = getFormElements.apply(form);
+    const input = elements.namedItem(name);
+    effect.apply(input);
+    input.dispatchEvent(new InputEvent("input"));
+  };
+
+  const toggleLayerByName = (name) => applyInputByName(
+    name,
+    function() { this.checked ^= 1; },
+  );
+
+  const showLayerByName = (name) => applyInputByName(
+    name,
+    function() { this.checked = true; },
+  );
+
+  const hideLayerByName = (name) => applyInputByName(
+    name,
+    function() { this.checked = false; },
+  );
+
+  const labelClick = (event) => {
+    if (event.type == "contextmenu" || event.altKey) {
+      event.preventDefault();
+      // >> set target control to checked
+      // if (all others were unchecked)
+      //   >> check all
+      // else
+      //   >> uncheck all
+      const targetLayer = event.target.control.name
+      showLayerByName(targetLayer);
+
+      const { form } = event.target;
+      const elements = getFormElements.apply(form);
+      const names = Object.entries(Object.getOwnPropertyDescriptors(elements)).flatMap(([k, v]) => v.enumerable ? [] : [k]);
+
+      const others = names.filter(name => name !== targetLayer);
+      const wereAllUnchecked = others.every(name =>
+        elements.namedItem(name).checked === false
+      );
+      others.forEach(wereAllUnchecked ? showLayerByName : hideLayerByName);
+    }
+  };
+
+  const handleLayerToggle = (event) => {
     const { target: { checked, name, parentElement: label } } = event;
     label.classList.toggle(`checked-true`, checked);
     label.classList.toggle(`checked-false`, !checked);
@@ -76,7 +124,9 @@ label.checked-false { text-decoration: line-through; color: silver; }
           ${layer}
         </label><br>`;
       legendForm.append(legendItem);
-      legendItem.addEventListener("input", toggleLayer);
+      legendItem.addEventListener("click", labelClick);
+      legendItem.addEventListener("contextmenu", labelClick);
+      legendItem.querySelector("input").addEventListener("input", handleLayerToggle);
 
       pointLayers.push({
         "id": `${layer}-point`,
