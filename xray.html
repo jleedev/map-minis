@@ -124,8 +124,9 @@ label.checked-false { text-decoration: line-through; color: silver; }
           ${layer}
         </label><br>`;
       legendForm.append(legendItem);
-      legendItem.addEventListener("click", labelClick);
-      legendItem.addEventListener("contextmenu", labelClick);
+      const labelEle = legendItem.querySelector("label");
+      labelEle.addEventListener("click", labelClick);
+      labelEle.addEventListener("contextmenu", labelClick);
       legendItem.querySelector("input").addEventListener("input", handleLayerToggle);
 
       pointLayers.push({
