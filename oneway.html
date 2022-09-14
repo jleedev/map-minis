@@ -20,10 +20,10 @@ const style = await (await fetch("./style.json")).json();
 style.layers = [
   {
     id: "water",
-    "type": "fill",
-    "source": "openmaptiles",
+    type: "fill",
+    source: "openmaptiles",
     "source-layer": "water",
-    "paint": {
+    paint: {
       "fill-color": "lightsteelblue",
     },
   },
@@ -36,12 +36,16 @@ const map = new maplibregl.Map({
   zoom: 14,
   hash: true,
 });
+Object.assign(window, { map });
 map.showTileBoundaries = true;
 map.getCanvas().focus();
 
-Object.assign(new Image(), {
-  src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 128 128"><rect width="128" height="128"></rect><path d="M0 0L64 64 0 128 64 128 128 64 64 0 0 0" fill="yellow"></path></svg>',
-}).addEventListener("load", (e) => map.addImage("chevron", e.target));
+{
+  const img = new Image();
+  img.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 128 128"><rect width="128" height="128"></rect><path d="M0 0L64 64 0 128 64 128 128 64 64 0 0 0" fill="yellow"></path></svg>';
+  await img.decode();
+  map.addImage("chevron", img);
+}
 
 const once = (obj, evt) => new Promise((resolve) => obj.once(evt, resolve));
 await once(map, "load");
@@ -55,7 +59,7 @@ map.addLayer({
     ["in", ["geometry-type"], ["literal", ["Polygon", "MultiPolygon"]]],
   ],
   "source-layer": "transportation",
-  "paint": {
+  paint: {
     "fill-color": "linen",
   },
 });
@@ -77,21 +81,22 @@ map.addLayer({
 
 const activeFeatures = [];
 const onClick = (event) => {
-  activeFeatures.splice(0).map(feature => {
+  console.trace(event.features);
+  activeFeatures.splice(0).map((feature) => {
     map.removeFeatureState(
-      {source: "openmaptiles", sourceLayer: "transportation", id: feature.id},
-      "active",
+      { source: "openmaptiles", sourceLayer: "transportation", id: feature.id },
+      "active"
     );
   });
   event.features.forEach((feature) => {
     map.setFeatureState(
-      {source: "openmaptiles", sourceLayer: "transportation", id: feature.id},
-      {active: true},
+      { source: "openmaptiles", sourceLayer: "transportation", id: feature.id },
+      { active: true }
     );
     activeFeatures.push(feature);
   });
   const info = document.querySelector("#info");
-  info.textContent = '';
+  info.textContent = "";
   activeFeatures.forEach((feat, index) => {
     info.append(`${feat.id} - ${JSON.stringify(feat.properties)}`);
     if (index < activeFeatures.length - 1) {
@@ -147,8 +152,6 @@ const onClick = (event) => {
     },
   });
 });
-
-window.map = map;
 
 </script>
 
