@@ -44,7 +44,11 @@ await new Promise((resolve) => map.once("load", resolve));
 {
   const img = new Image();
   img.src =
-    'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 128 128"><rect width="128" height="128"></rect><path d="M0 0L64 64 0 128 64 128 128 64 64 0 0 0" fill="yellow"></path></svg>';
+    `data:image/svg+xml,
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 128 128">
+        <rect width="128" height="128" />
+        <path d="M0 0L64 64 0 128 64 128 128 64 64 0 0 0" fill="yellow" />
+      </svg>`;
   await img.decode();
   map.addImage("chevron", img);
 }
