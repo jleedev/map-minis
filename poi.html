@@ -57,7 +57,7 @@
 
   const getGlyph = (name, size = 40) => {
     const glyph = font.nameToGlyph(name);
-    let buffer = 3;
+    let buffer = 5;
     let { x1, y1, x2, y2 } = glyph.getBoundingBox();
     let [w, h] = [x2 - x1, y2 - y1];
     let t = size ? Math.max(w, h) / size : 1;
@@ -78,6 +78,7 @@
     type: "raster",
     tileSize: 256,
   };
+  style.sources.toner.tiles = style.sources.toner.tiles.map(url => url.replace(".png", "{ratio}.png"));
 
   const bg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2" width="8" style="background:#f0f"><path d="M0 0H1V2H2V1H0Z" fill="#0f0"/></svg>`;
   const applyPreview = canvas => {
@@ -138,43 +139,306 @@
     map.addImage(name, imageData, {sdf: true});
   });
 
+  /*
   map.addLayer({
     id: "poi-circle",
     type: "circle",
     source: "openmaptiles",
     "source-layer": "poi",
     paint: {
-      "circle-radius": 1,
-      "circle-color": "#f0f",
+      "circle-color": "rgba(0,0,0,0)",
+      "circle-radius": [
+        "interpolate",
+        ["exponential", 2],
+        ["zoom"],
+        14,
+        2,
+        18,
+        5,
+      ],
+      "circle-stroke-color": "#f0f",
+      "circle-stroke-width": 0.5,
+      "circle-stroke-width": 0.5,
+      "circle-blur": [
+        "interpolate",
+        ["exponential", 2],
+        ["zoom"],
+        14,
+        0,
+        18,
+        5,
+      ],
     }
   });
+  */
 
-  const iconLayer = (layer, cls, color, image) => ({
-    id: `${layer}-${cls}`,
-    type: "symbol",
-    source: "openmaptiles",
-    "source-layer": layer,
-    filter: ["==", ["get","class"],cls],
-    paint: {
-      "icon-color": "#000",
-      "icon-halo-color": color,
-      "icon-halo-width": 2,
-      "icon-halo-blur": 1,
-    },
-    layout: {
-      "icon-image": ["image",image],
-      "icon-pitch-alignment": "map",
-      "icon-rotation-alignment": "map",
-      "icon-size": [
-        "interpolate",
-        ["exponential", 1.25],
-        ["zoom"],
-        12, 0.5, 22, 5,
-      ],
-    },
-  });
+  const iconLayer = ({layer, class: cls, subclass, color, haloColor, image}) => {
+    const filter = ["all"];
+    filter.push(["==", ["get","class"],cls]);
+    subclass && filter.push(["==", ["get","subclass"],subclass]);
+    (subclass === false) && filter.push(["!", ["has", "subclass"]]);
+    const id = subclass ? `${layer}-${cls}-${subclass}` : `${layer}-${cls}`;
+    return {
+      id,
+      type: "symbol",
+      source: "openmaptiles",
+      "source-layer": layer,
+      filter,
+      paint: {
+        "icon-color": color ?? "#000",
+        "icon-halo-color": haloColor ?? "#fff",
+        "icon-halo-width": [
+          "interpolate",
+          ["exponential", 1.4],
+          ["zoom"],
+          14, 1, 22, 2,
+        ],
+        "icon-halo-blur": [
+          "interpolate",
+          ["exponential", 1.4],
+          ["zoom"],
+          14, 0.1, 22, 1.5,
+        ],
+      },
+      layout: {
+        "symbol-sort-key": ["get", "rank"],
+        "icon-image": ["image",image],
+        "icon-padding": 0,
+        "icon-pitch-alignment": "map",
+        "icon-rotation-alignment": "map",
+        "icon-size": [
+          "interpolate",
+          ["exponential", 1.6],
+          ["zoom"],
+          12, 0.125, 22, 5,
+        ],
+      },
+    };
+  };
 
-  map.addLayer(iconLayer("poi", "cafe", "chocolate", "uni2615"));
-  map.addLayer(iconLayer("poi", "bar", "lightblue", "u1F378"));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "cafe",
+    haloColor: "chocolate",
+    image: "uni2615"
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "bar",
+    haloColor: "chocolate",
+    image: "u1F378"
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "fast_food",
+    haloColor: "chocolate",
+    image: "hotdog"
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "bakery",
+    haloColor: "chocolate",
+    image: "u1F956"
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "shop",
+    subclass: "ice_cream",
+    haloColor: "chocolate",
+    image: "u1F366"
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "garden",
+    haloColor: "greenyellow",
+    image: "u1F337"
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "playground",
+    haloColor: "greenyellow",
+    image: "playgroundSlide"
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "running",
+    haloColor: "greenyellow",
+    image: "personRunning"
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "golf",
+    haloColor: "greenyellow",
+    image: "personGolfing"
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "pitch",
+    subclass: "baseball",
+    haloColor: "greenyellow",
+    image: "uni26BE"
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "pitch",
+    subclass: false,
+    haloColor: "greenyellow",
+    image: "personCartwheeling"
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "pitch",
+    subclass: "soccer",
+    haloColor: "greenyellow",
+    image: "uni26BD"
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "pitch",
+    subclass: "basketball",
+    haloColor: "greenyellow",
+    image: "u1F3C0"
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "pitch",
+    subclass: "american_football",
+    haloColor: "greenyellow",
+    image: "u1F3C8"
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "pitch",
+    subclass: "tennis",
+    haloColor: "greenyellow",
+    image: "u1F3BE"
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "ice_rink",
+    haloColor: "greenyellow",
+    image: "uni26F8"
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "swimming_pool",
+    haloColor: "greenyellow",
+    image: "personSwimming"
+  }));
+  map.addLayer(iconLayer({
+    layer: "aeroway",
+    class: "helipad",
+    haloColor: "hotpink",
+    image: "u1F681"
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "hairdresser",
+    haloColor: "hotpink",
+    image: "personGettingHaircut"
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "shop",
+    subclass: "beauty",
+    haloColor: "hotpink",
+    image: "u1F485"
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "post",
+    subclass: "post_box",
+    haloColor: "hotpink",
+    image: "u1F4EE",
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "post",
+    subclass: "post_office",
+    haloColor: "hotpink",
+    image: "uni2709",
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "fuel",
+    haloColor: "lightcoral",
+    image: "uni26FD",
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "cemetery",
+    haloColor: "lavender",
+    image: "headstone",
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "place_of_worship",
+    subclass: "christian",
+    color: "indigo",
+    haloColor: "#fff",
+    image: "latinCross",
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "place_of_worship",
+    subclass: "jewish",
+    color: "indigo",
+    haloColor: "#fff",
+    image: "uni2721",
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "parking",
+    haloColor: "mediumturquoise",
+    image: "u1F697",
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "fire_station",
+    haloColor: "mediumturquoise",
+    image: "u1F692",
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "police",
+    haloColor: "mediumturquoise",
+    image: "u1F693",
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "dentist",
+    haloColor: "mediumturquoise",
+    image: "u1F531",
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "lodging",
+    haloColor: "mediumturquoise",
+    image: "u1F6CF",
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "school",
+    haloColor: "moccasin",
+    image: "student",
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "library",
+    haloColor: "moccasin",
+    image: "u1F4DA",
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "college",
+    haloColor: "moccasin",
+    image: "u1F393",
+  }));
+  map.addLayer(iconLayer({
+    layer: "poi",
+    class: "toilets",
+    haloColor: "moccasin",
+    image: "u1F4A9",
+  }));
 
 </script>
