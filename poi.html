@@ -1,0 +1,180 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Display a map</title>
+<meta name=viewport content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<link rel=stylesheet href="https://cdn.jsdelivr.net/npm/maplibre-gl@2.4.0/dist/maplibre-gl.css">
+<style>
+  body { margin: 0; padding: 0; }
+  #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+</style>
+<div id=map></div>
+
+<script type=module>
+
+  import OpenType from "https://unpkg.com/opentype.js?module";
+  import * as d3 from "https://unpkg.com/d3-fetch?module";
+  import calcSdf from "https://esm.run/bitmap-sdf";
+  import maplibregl from "https://cdn.jsdelivr.net/npm/maplibre-gl@2.4.0/+esm";
+  Object.assign(window, {OpenType, d3, calcSdf, maplibregl});
+
+  const notoemojiRegular = await d3.buffer("NotoEmoji-Regular.ttf");
+  const font = OpenType.parse(notoemojiRegular);
+  Object.assign(window, {notoemojiRegular, font});
+
+  // layer.class.subclass
+  const icons = {
+    poi: {
+      playground: "playgroundSlide",
+      golf: "personGolfing",
+      ice_rink: "uni26F8",
+      swimming_pool: "personSwimming",
+      stadium: "u1F3DF",
+      pitch: {
+        american_football: "u1F3C8",
+      },
+      atm: "atmSign",
+      shop: {
+        jewelry: "u1F48D",
+        massage: "personGettingMassage",
+        hairdresser: "personGettingHaircut",
+      },
+      post: {
+        post_box: "u1F4EE",
+        post_office: "envelopeWithArrow",
+      },
+      fire_station: "u1F692",
+      police: "u1F693",
+      cemetery: "headstone",
+      school: {
+        kindergarten: "teddyBear",
+      },
+      fuel: "uni26FD",
+    },
+    aeroway: {
+      helipad: "u1F681",
+    }
+  };
+
+  const getGlyph = (name, size = 40) => {
+    const glyph = font.nameToGlyph(name);
+    let buffer = 3;
+    let { x1, y1, x2, y2 } = glyph.getBoundingBox();
+    let [w, h] = [x2 - x1, y2 - y1];
+    let t = size ? Math.max(w, h) / size : 1;
+    let canvas = document.createElement("canvas");
+    canvas.width = w / t + buffer * 2;
+    canvas.height = h / t + buffer * 2;
+    let ctx = canvas.getContext("2d");
+    ctx.translate(buffer, buffer);
+    ctx.scale(1 / t, 1 / t);
+    ctx.translate(-x1, y2);
+    glyph.draw(ctx, 0, 0, font.unitsPerEm);
+    return ctx.canvas;
+  };
+
+  const style = await d3.json("style.json");
+  style.sources.toner = {
+    ...await d3.json("https://tile.openstreetmap.jp/styles/maptiler-toner-en.json"),
+    type: "raster",
+    tileSize: 256,
+  };
+
+  const bg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2" width="8" style="background:#f0f"><path d="M0 0H1V2H2V1H0Z" fill="#0f0"/></svg>`;
+  const applyPreview = canvas => {
+    Object.assign(canvas.style, {
+      imageRendering: 'pixelated',
+      width: `${canvas.width * 4}px`,
+      background: `url(data:image/svg+xml;base64,${btoa(bg)})`,
+      margin: `2px`,
+    });
+    return canvas;
+  };
+
+  const getSdf = name => {
+    let canvas = getGlyph(name);
+    let distances = calcSdf(canvas, { channel: 3 });
+    // float to alpha, fully white
+    let buf = Uint32Array.from(distances, (d) => ((d * 255) << 24) | 0xffffff).buffer;
+    return new ImageData(new Uint8ClampedArray(buf), canvas.width, canvas.height);
+  }
+
+  const showGlyph = name => document.body.append(applyPreview(getGlyph(name)));
+
+  const showSdf = name => {
+    const imageData = getSdf(name);
+    let canvas = document.createElement("canvas");
+    canvas.width = imageData.width;
+    canvas.height = imageData.height;
+    let ctx = canvas.getContext("2d");
+    ctx.putImageData(imageData, 0, 0);
+    document.body.append(applyPreview(canvas));
+  };
+
+  Object.assign(window, {icons, style, getGlyph, showGlyph, showSdf});
+
+  const map = new maplibregl.Map({
+    container: "map",
+    style,
+    center: [-80,40.44],
+    zoom: 14,
+    hash: true,
+  });
+  Object.assign(window, { map });
+  map.getCanvas().focus();
+  await new Promise(resolve => map.once("load", resolve));
+
+  map.addLayer({
+    id: "raster-tiles",
+    type: "raster",
+    source: "toner",
+    paint: {
+      "raster-brightness-max": 0.25,
+    },
+  });
+
+  map.on("styleimagemissing", e => {
+    const name = e.id;
+    const imageData = getSdf(name);
+    map.addImage(name, imageData, {sdf: true});
+  });
+
+  map.addLayer({
+    id: "poi-circle",
+    type: "circle",
+    source: "openmaptiles",
+    "source-layer": "poi",
+    paint: {
+      "circle-radius": 1,
+      "circle-color": "#f0f",
+    }
+  });
+
+  const iconLayer = (layer, cls, color, image) => ({
+    id: `${layer}-${cls}`,
+    type: "symbol",
+    source: "openmaptiles",
+    "source-layer": layer,
+    filter: ["==", ["get","class"],cls],
+    paint: {
+      "icon-color": "#000",
+      "icon-halo-color": color,
+      "icon-halo-width": 2,
+      "icon-halo-blur": 1,
+    },
+    layout: {
+      "icon-image": ["image",image],
+      "icon-pitch-alignment": "map",
+      "icon-rotation-alignment": "map",
+      "icon-size": [
+        "interpolate",
+        ["exponential", 1.25],
+        ["zoom"],
+        12, 0.5, 22, 5,
+      ],
+    },
+  });
+
+  map.addLayer(iconLayer("poi", "cafe", "chocolate", "uni2615"));
+  map.addLayer(iconLayer("poi", "bar", "lightblue", "u1F378"));
+
+</script>
