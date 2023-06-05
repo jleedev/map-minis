@@ -5,7 +5,7 @@
   "sources": {
     "openmaptiles": {
       "type": "vector",
-      "url": "https://6ug7hetxl9.execute-api.us-east-2.amazonaws.com/data/v3.json"
+      "url": "https://tile.ourmap.us/data/v3.json"
     }
   },
   "layers": [
