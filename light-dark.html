@@ -1,0 +1,78 @@
+<!doctype html>
+<meta charset=utf-8>
+<meta name=viewport content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>light dark</title>
+
+<script crossorigin
+  src="https://unpkg.com/maplibre-gl@4.3.1/dist/maplibre-gl.js"
+  integrity="sha512-fGNMDsNgOu2v6urv+c6JhWnOdfEM6rBNZwHVNOW7RLBOJag0KJoq7SA/tpAB2Pt5IisfqzGvLZGqRBih8dihXQ=="></script>
+<link crossorigin rel="stylesheet"
+  href="https://unpkg.com/maplibre-gl@4.3.1/dist/maplibre-gl.css"
+  integrity="sha512-kPPBBqAnomArnDoE0fkmrQ6s42aaFQWvV7TsIVMRVyBnKw1hkUF2kuXDpkYWiZR/CBWyR9+0O/8chInGoDGeKw==">
+
+<style>
+:root { color-scheme: light dark; }
+html, body { height: 100%; }
+body { margin: 0; display: grid; }
+
+@media (prefers-color-scheme: dark) {
+  .maplibregl-ctrl-attrib.maplibregl-compact {
+    background-color: #000;
+    color: #fff;
+  }
+  .maplibregl-ctrl-attrib a {
+    color: rgba(255, 255, 255, .75);
+  }
+  .maplibregl-ctrl-group {
+    background: #000;
+  }
+  .maplibregl-ctrl-group button+button {
+    border-top-color: #222;
+  }
+  .maplibregl-ctrl-icon, .maplibregl-ctrl-attrib-button {
+    filter: invert(1) hue-rotate(180deg);
+  }
+  .maplibregl-ctrl-scale {
+    background-color: hsla(0, 0%, 0%, .75);
+    color: #ccc;
+    border-color: #ccc;
+  }
+}
+
+</style>
+
+<div id=map></div>
+
+<script type=module>
+
+  async function json(...args) {
+    const response = await fetch(...args);
+    if (!response.ok) throw new Error(response.status);
+    return response.json();
+  }
+
+  const [ lightStyle, darkStyle ] = await Promise.all(["light", "dark"].map((name) => json(`https://api.protomaps.com/styles/v2/${name}.json?key=609bae3635405880`)));
+
+  const mql = matchMedia("(prefers-color-scheme: dark)");
+  mql.addEventListener("change", function() {
+    const style = this.matches ? darkStyle : lightStyle;
+    console.log(+performance.now().toFixed(1), this.matches);
+    map.setStyle(style);
+  });
+  const initialStyle = mql.matches ? darkStyle : lightStyle;
+
+  const map = window.map = new maplibregl.Map({
+    container: 'map',
+    style: initialStyle,
+    center: [0, 0],
+    zoom: 1,
+    hash: true,
+  });
+
+  map.addControl(new maplibregl.NavigationControl());
+  map.addControl(new maplibregl.GeolocateControl());
+  map.addControl(new maplibregl.LogoControl());
+  map.addControl(new maplibregl.ScaleControl());
+
+</script>
+
