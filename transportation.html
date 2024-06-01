@@ -27,21 +27,24 @@ body { margin: 0; padding: 0; }
 
   style.layers = [];
 
+  // Divide by this
+  const scaleDivisor = ['cos',['/',['distance',{'type':'LineString',coordinates:[[-180,0],[0,0],[180,0]]}],6378137]];
+  // Multiply by this
+  const scaleFactor = ['/',1,scaleDivisor];
+
   let physicalWidth = (widthMetres) => {
     const maxZoom = 24;
     const earthRadius = 6378137;
     let metres_per_pixel_z0 = earthRadius * Math.PI * 2 / 1024;
-    // fudge (about 1.3)
-    metres_per_pixel_z0 /= Math.abs(Math.cos(40));
     let metres_per_pixel_z24 = metres_per_pixel_z0 / 2**24;
     return [
       "interpolate",
       ["exponential", 2],
       ["zoom"],
       0,
-      widthMetres / metres_per_pixel_z0,
+      ['/', widthMetres / metres_per_pixel_z0, scaleDivisor],
       24,
-      widthMetres / metres_per_pixel_z24,
+      ['/', widthMetres / metres_per_pixel_z24, scaleDivisor],
     ];
   };
 
