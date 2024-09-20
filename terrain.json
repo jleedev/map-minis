@@ -133,6 +133,69 @@
       }
     },
     {
+      "id": "water_line",
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "water",
+      "filter": [
+        "all",
+        [
+          "!=",
+          [
+            "get",
+            "intermittent"
+          ],
+          1
+        ],
+        [
+          "match",
+          [
+            "get",
+            "class"
+          ],
+          [
+            "river",
+            "canal"
+          ],
+          [
+            ">=",
+            [
+              "zoom"
+            ],
+            8
+          ],
+          [
+            "stream"
+          ],
+          [
+            ">=",
+            [
+              "zoom"
+            ],
+            16
+          ],
+          "lake",
+          [
+            ">=",
+            [
+              "zoom"
+            ],
+            8
+          ],
+          true
+        ]
+      ],
+      "layout": {
+        "line-cap": "round",
+        "line-join": "round"
+      },
+      "paint": {
+        "line-color": "hsl(211, 42%, 50%)",
+        "line-blur": 1.6,
+        "line-width": 1.8
+      }
+    },
+    {
       "id": "water",
       "type": "fill",
       "source": "openmaptiles",
@@ -334,6 +397,128 @@
           10,
           3
         ]
+      }
+    },
+    {
+      "id": "waterway-name",
+      "type": "symbol",
+      "source": "openmaptiles",
+      "source-layer": "waterway",
+      "layout": {
+        "symbol-placement": "line",
+        "text-font": [
+          "Americana-Italic"
+        ],
+        "text-field": [
+          "format",
+          [
+            "coalesce",
+            [
+              "get",
+              "name:en"
+            ],
+            [
+              "get",
+              "name"
+            ]
+          ]
+        ],
+        "text-size": 12
+      },
+      "paint": {
+        "text-color": "#4a7eb5",
+        "text-halo-width": 2,
+        "text-halo-color": "#fff"
+      }
+    },
+    {
+      "id": "water_name-line",
+      "type": "symbol",
+      "source": "openmaptiles",
+      "source-layer": "water_name",
+      "layout": {
+        "symbol-placement": "line",
+        "text-font": [
+          "Americana-Italic"
+        ],
+        "text-field": [
+          "format",
+          [
+            "coalesce",
+            [
+              "get",
+              "name:en"
+            ],
+            [
+              "get",
+              "name"
+            ]
+          ]
+        ],
+        "text-size": 12
+      },
+      "paint": {
+        "text-color": "#4a7eb5",
+        "text-halo-width": 2,
+        "text-halo-color": "#fff"
+      }
+    },
+    {
+      "id": "water_name-point",
+      "type": "symbol",
+      "source": "openmaptiles",
+      "source-layer": "water_name",
+      "layout": {
+        "symbol-placement": "point",
+        "text-justify": "auto",
+        "text-radial-offset": [
+          "interpolate",
+          [
+            "exponential",
+            1.5
+          ],
+          [
+            "zoom"
+          ],
+          0,
+          0,
+          24,
+          4
+        ],
+        "text-variable-anchor": [
+          "center",
+          "left",
+          "right",
+          "top",
+          "bottom",
+          "top-left",
+          "top-right",
+          "bottom-left",
+          "bottom-right"
+        ],
+        "text-font": [
+          "Americana-Italic"
+        ],
+        "text-field": [
+          "format",
+          [
+            "coalesce",
+            [
+              "get",
+              "name:en"
+            ],
+            [
+              "get",
+              "name"
+            ]
+          ]
+        ],
+        "text-size": 12
+      },
+      "paint": {
+        "text-color": "#4a7eb5",
+        "text-halo-width": 2,
+        "text-halo-color": "#fff"
       }
     },
     {
