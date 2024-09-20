@@ -1,0 +1,690 @@
+{
+  "version": 8,
+  "glyphs": "https://font.americanamap.org/{fontstack}/{range}.pbf",
+  "sources": {
+    "openmaptiles": {
+      "type": "vector",
+      "url": "https://tile.ourmap.us/data/v3.json"
+    },
+    "dem": {
+      "type": "raster-dem",
+      "attribution": "<a target=\"_blank\" rel=\"noopener\" href=\"https://registry.opendata.aws/terrain-tiles/\">Terrain Tiles</a>",
+      "tiles": [
+        "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"
+      ],
+      "encoding": "terrarium",
+      "tileSize": 256,
+      "maxzoom": 15
+    },
+    "base": {
+      "type": "vector",
+      "attribution": "<a href=\"https://overturemaps.org\" rel=\"noopener\" target=\"_blank\">Overture Maps Foundation</a>",
+      "url": "pmtiles://https://d3c1b7bog2u1nn.cloudfront.net/2024-09-18/base.pmtiles"
+    }
+  },
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "hsl(30, 44%, 96%)"
+      }
+    },
+    {
+      "id": "base",
+      "type": "fill",
+      "source": "base",
+      "source-layer": "land_cover",
+      "filter": [
+        "has",
+        "subtype"
+      ],
+      "paint": {
+        "fill-color": [
+          "interpolate",
+          [
+            "exponential",
+            1.2
+          ],
+          [
+            "zoom"
+          ],
+          4,
+          [
+            "match",
+            [
+              "get",
+              "subtype"
+            ],
+            "snow",
+            "rgba(224, 255, 255, 0.3)",
+            "forest",
+            "rgba(144, 238, 144, 0.2)",
+            "crop",
+            "rgba(250, 250, 210, 0.2)",
+            "grass",
+            "rgba(124, 252, 0, 0.1)",
+            "shrub",
+            "rgba(216, 191, 116, 0.1)",
+            "barren",
+            "rgba(253, 245, 230, 0.2)",
+            "urban",
+            "rgba(240, 230, 240, 0.4)",
+            "moss",
+            "rgba(0, 100, 0, 0.1)",
+            "wetland",
+            "rgba(32, 178, 170, 0.2)",
+            "mangrove",
+            "rgba(46, 139, 87, 0.2)",
+            "magenta"
+          ],
+          17,
+          [
+            "match",
+            [
+              "get",
+              "subtype"
+            ],
+            "snow",
+            "rgba(224, 255, 255, 0.2)",
+            "forest",
+            "rgba(144, 238, 144, 0)",
+            "crop",
+            "rgba(250, 250, 210, 0)",
+            "grass",
+            "rgba(124, 252, 0, 0)",
+            "shrub",
+            "rgba(216, 191, 116, 0)",
+            "barren",
+            "rgba(253, 245, 230, 0.1)",
+            "urban",
+            "rgba(240, 230, 240, 0.4)",
+            "moss",
+            "rgba(0, 100, 0, 0)",
+            "wetland",
+            "rgba(32, 178, 170, 0)",
+            "mangrove",
+            "rgba(46, 139, 87, 0)",
+            "magenta"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "hillshading",
+      "type": "hillshade",
+      "source": "dem",
+      "paint": {
+        "hillshade-exaggeration": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          12,
+          0.5,
+          18,
+          0.1
+        ],
+        "hillshade-shadow-color": "hsla(30, 14%, 76%, 1)",
+        "hillshade-highlight-color": "hsla(30, 44%, 99%, 1)"
+      }
+    },
+    {
+      "id": "water",
+      "type": "fill",
+      "source": "openmaptiles",
+      "source-layer": "water",
+      "paint": {
+        "fill-color": "hsl(211, 50%, 85%)",
+        "fill-outline-color": "hsla(211, 50%, 85%, 0.5)"
+      }
+    },
+    {
+      "id": "waterway",
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "waterway",
+      "paint": {
+        "line-color": "hsl(211, 50%, 85%)",
+        "line-width": [
+          "interpolate",
+          [
+            "exponential",
+            2
+          ],
+          [
+            "zoom"
+          ],
+          3,
+          0.5,
+          16,
+          10
+        ]
+      }
+    },
+    {
+      "id": "highway-casing",
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "filter": [
+        "all",
+        [
+          "==",
+          [
+            "geometry-type"
+          ],
+          "LineString"
+        ],
+        [
+          "match",
+          [
+            "get",
+            "class"
+          ],
+          [
+            "ferry",
+            "aerialway"
+          ],
+          false,
+          true
+        ]
+      ],
+      "paint": {
+        "line-width": [
+          "interpolate",
+          [
+            "exponential",
+            2
+          ],
+          [
+            "zoom"
+          ],
+          8,
+          2,
+          16,
+          [
+            "case",
+            [
+              "==",
+              [
+                "get",
+                "brunnel"
+              ],
+              "bridge"
+            ],
+            14,
+            8
+          ]
+        ],
+        "line-blur": 0.5,
+        "line-color": "#cccccc"
+      }
+    },
+    {
+      "id": "highway-line",
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "filter": [
+        "all",
+        [
+          "==",
+          [
+            "geometry-type"
+          ],
+          "LineString"
+        ],
+        [
+          "match",
+          [
+            "get",
+            "class"
+          ],
+          [
+            "ferry",
+            "aerialway"
+          ],
+          false,
+          true
+        ]
+      ],
+      "paint": {
+        "line-width": [
+          "interpolate",
+          [
+            "exponential",
+            2
+          ],
+          [
+            "zoom"
+          ],
+          8,
+          1,
+          16,
+          6
+        ],
+        "line-color": [
+          "case",
+          [
+            "==",
+            [
+              "get",
+              "brunnel"
+            ],
+            "tunnel"
+          ],
+          "#eeeeee",
+          "#ffffff"
+        ]
+      }
+    },
+    {
+      "id": "boundary",
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "boundary",
+      "filter": [
+        "all",
+        [
+          "has",
+          "admin_level"
+        ],
+        [
+          "<=",
+          [
+            "get",
+            "admin_level"
+          ],
+          7
+        ],
+        [
+          "!=",
+          [
+            "get",
+            "maritime"
+          ],
+          1
+        ]
+      ],
+      "paint": {
+        "line-color": "hsl(330, 44%, 86%)",
+        "line-blur": [
+          "/",
+          [
+            "get",
+            "admin_level"
+          ],
+          4
+        ],
+        "line-width": [
+          "interpolate",
+          [
+            "exponential",
+            1.1
+          ],
+          [
+            "zoom"
+          ],
+          0,
+          1,
+          10,
+          3
+        ]
+      }
+    },
+    {
+      "id": "peak-name",
+      "type": "symbol",
+      "source": "openmaptiles",
+      "source-layer": "mountain_peak",
+      "filter": [
+        "has",
+        "rank"
+      ],
+      "layout": {
+        "symbol-sort-key": [
+          "get",
+          "rank"
+        ],
+        "text-justify": "auto",
+        "text-radial-offset": [
+          "interpolate",
+          [
+            "exponential",
+            1.5
+          ],
+          [
+            "zoom"
+          ],
+          0,
+          0,
+          24,
+          4
+        ],
+        "text-variable-anchor": [
+          "center",
+          "left",
+          "right",
+          "top",
+          "bottom",
+          "top-left",
+          "top-right",
+          "bottom-left",
+          "bottom-right"
+        ],
+        "text-font": [
+          "Americana-Italic"
+        ],
+        "text-field": [
+          "format",
+          [
+            "coalesce",
+            [
+              "get",
+              "name:en"
+            ],
+            [
+              "get",
+              "name"
+            ]
+          ]
+        ],
+        "text-size": 12
+      },
+      "paint": {
+        "text-color": "#660",
+        "text-halo-width": 2,
+        "text-halo-color": "#fff"
+      }
+    },
+    {
+      "id": "park-name",
+      "type": "symbol",
+      "source": "openmaptiles",
+      "source-layer": "park",
+      "filter": [
+        "has",
+        "rank"
+      ],
+      "layout": {
+        "text-justify": "auto",
+        "text-radial-offset": [
+          "interpolate",
+          [
+            "exponential",
+            1.5
+          ],
+          [
+            "zoom"
+          ],
+          0,
+          0,
+          24,
+          4
+        ],
+        "text-variable-anchor": [
+          "center",
+          "left",
+          "right",
+          "top",
+          "bottom",
+          "top-left",
+          "top-right",
+          "bottom-left",
+          "bottom-right"
+        ],
+        "symbol-sort-key": [
+          "get",
+          "rank"
+        ],
+        "text-font": [
+          "Americana-Regular"
+        ],
+        "text-field": [
+          "format",
+          [
+            "coalesce",
+            [
+              "get",
+              "name:en"
+            ],
+            [
+              "get",
+              "name"
+            ]
+          ]
+        ],
+        "text-size": 11
+      },
+      "paint": {
+        "text-color": "#060",
+        "text-halo-width": 2,
+        "text-halo-color": "#fff"
+      }
+    },
+    {
+      "id": "poi-name",
+      "type": "symbol",
+      "source": "openmaptiles",
+      "source-layer": "poi",
+      "filter": [
+        "all",
+        [
+          "has",
+          "rank"
+        ],
+        [
+          "match",
+          [
+            "get",
+            "class"
+          ],
+          [
+            "park",
+            "information",
+            "attraction"
+          ],
+          true,
+          false
+        ]
+      ],
+      "layout": {
+        "text-justify": "auto",
+        "text-radial-offset": [
+          "interpolate",
+          [
+            "exponential",
+            1.5
+          ],
+          [
+            "zoom"
+          ],
+          0,
+          0,
+          24,
+          4
+        ],
+        "text-variable-anchor": [
+          "center",
+          "left",
+          "right",
+          "top",
+          "bottom",
+          "top-left",
+          "top-right",
+          "bottom-left",
+          "bottom-right"
+        ],
+        "symbol-sort-key": [
+          "get",
+          "rank"
+        ],
+        "text-font": [
+          "Americana-Italic"
+        ],
+        "text-field": [
+          "format",
+          [
+            "coalesce",
+            [
+              "get",
+              "name:en"
+            ],
+            [
+              "get",
+              "name"
+            ]
+          ]
+        ],
+        "text-size": 12
+      },
+      "paint": {
+        "text-color": "#060",
+        "text-halo-width": 2,
+        "text-halo-color": "#fff"
+      }
+    },
+    {
+      "id": "place-name",
+      "type": "symbol",
+      "source": "openmaptiles",
+      "source-layer": "place",
+      "filter": [
+        "all",
+        [
+          "has",
+          "rank"
+        ],
+        [
+          "match",
+          [
+            "get",
+            "class"
+          ],
+          "state",
+          false,
+          true
+        ]
+      ],
+      "layout": {
+        "text-justify": "auto",
+        "text-radial-offset": [
+          "interpolate",
+          [
+            "exponential",
+            1.5
+          ],
+          [
+            "zoom"
+          ],
+          0,
+          0,
+          24,
+          4
+        ],
+        "text-variable-anchor": [
+          "center",
+          "left",
+          "right",
+          "top",
+          "bottom",
+          "top-left",
+          "top-right",
+          "bottom-left",
+          "bottom-right"
+        ],
+        "symbol-sort-key": [
+          "get",
+          "rank"
+        ],
+        "text-font": [
+          "case",
+          [
+            "==",
+            [
+              "get",
+              "class"
+            ],
+            "island"
+          ],
+          [
+            "literal",
+            [
+              "Americana-Italic"
+            ]
+          ],
+          [
+            "literal",
+            [
+              "Americana-Regular"
+            ]
+          ]
+        ],
+        "text-field": [
+          "format",
+          [
+            "coalesce",
+            [
+              "get",
+              "name:en"
+            ],
+            [
+              "get",
+              "name"
+            ]
+          ]
+        ],
+        "text-transform": [
+          "match",
+          [
+            "get",
+            "class"
+          ],
+          [
+            "state",
+            "neighbourhood",
+            "quarter"
+          ],
+          "uppercase",
+          "none"
+        ],
+        "text-size": [
+          "match",
+          [
+            "get",
+            "class"
+          ],
+          [
+            "continent"
+          ],
+          14,
+          [
+            "city"
+          ],
+          13,
+          [
+            "town",
+            "state"
+          ],
+          12,
+          [
+            "country",
+            "island"
+          ],
+          11,
+          "village",
+          10,
+          9
+        ]
+      },
+      "paint": {
+        "text-halo-width": 2,
+        "text-halo-color": "#fff"
+      }
+    }
+  ]
+}
