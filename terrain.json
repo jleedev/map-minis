@@ -280,7 +280,22 @@
               "bridge"
             ],
             14,
-            8
+            [
+              "match",
+              [
+                "get",
+                "class"
+              ],
+              [
+                "motorway",
+                "trunk",
+                "primary",
+                "secondary",
+                "tertiary"
+              ],
+              10,
+              4
+            ]
           ]
         ],
         "line-blur": 0.5,
@@ -328,7 +343,22 @@
           8,
           1,
           16,
-          6
+          [
+            "match",
+            [
+              "get",
+              "class"
+            ],
+            [
+              "motorway",
+              "trunk",
+              "primary",
+              "secondary",
+              "tertiary"
+            ],
+            8,
+            2
+          ]
         ],
         "line-color": [
           "case",
