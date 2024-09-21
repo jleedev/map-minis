@@ -20,6 +20,10 @@
       "type": "vector",
       "attribution": "<a href=\"https://overturemaps.org\" rel=\"noopener\" target=\"_blank\">Overture Maps Foundation</a>",
       "url": "pmtiles://https://d3c1b7bog2u1nn.cloudfront.net/2024-09-18/base.pmtiles"
+    },
+    "contours": {
+      "type": "vector",
+      "url": "https://dwuxtsziek7cf.cloudfront.net/contours-feet.json"
     }
   },
   "layers": [
@@ -427,6 +431,65 @@
           10,
           3
         ]
+      }
+    },
+    {
+      "id": "contours",
+      "type": "line",
+      "source": "contours",
+      "source-layer": "contours",
+      "minzoom": 10,
+      "paint": {
+        "line-width": 1.2,
+        "line-blur": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          10,
+          2,
+          16,
+          4
+        ],
+        "line-color": [
+          "case",
+          [
+            "get",
+            "idx"
+          ],
+          "rgba(122, 122, 0, 0.7)",
+          "rgba(122, 122, 0, 0.4)"
+        ]
+      }
+    },
+    {
+      "id": "contours-text",
+      "type": "symbol",
+      "source": "contours",
+      "source-layer": "contours",
+      "minzoom": 10,
+      "layout": {
+        "symbol-placement": "line",
+        "text-font": [
+          "Americana-Regular"
+        ],
+        "text-field": [
+          "format",
+          [
+            "get",
+            "ele"
+          ],
+          "m"
+        ],
+        "text-size": 9
+      },
+      "paint": {
+        "text-color": "#660",
+        "text-halo-width": 2,
+        "text-halo-color": "#fff"
       }
     },
     {
