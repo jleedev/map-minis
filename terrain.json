@@ -502,6 +502,44 @@
       }
     },
     {
+      "id": "landuse-fill",
+      "type": "fill",
+      "source": "openmaptiles",
+      "source-layer": "landuse",
+      "paint": {
+        "fill-color": [
+          "match",
+          [
+            "get",
+            "class"
+          ],
+          "military",
+          "rgba(255,0,0,0.03)",
+          "rgba(0,0,0,0)"
+        ]
+      }
+    },
+    {
+      "id": "landuse-line",
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "landuse",
+      "paint": {
+        "line-color": [
+          "match",
+          [
+            "get",
+            "class"
+          ],
+          "military",
+          "rgba(255,0,0,1)",
+          "rgba(0,0,0,0)"
+        ],
+        "line-width": 1.5,
+        "line-blur": 5
+      }
+    },
+    {
       "id": "waterway-name",
       "type": "symbol",
       "source": "openmaptiles",
