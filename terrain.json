@@ -471,6 +471,14 @@
       "source": "contours",
       "source-layer": "contours",
       "minzoom": 10,
+      "filter": [
+        "==",
+        [
+          "get",
+          "idx"
+        ],
+        true
+      ],
       "layout": {
         "symbol-placement": "line",
         "text-font": [
@@ -482,9 +490,10 @@
             "get",
             "ele"
           ],
-          "ft"
+          "′"
         ],
-        "text-size": 9
+        "text-size": 9,
+        "text-letter-spacing": 0.1
       },
       "paint": {
         "text-color": "#660",
