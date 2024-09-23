@@ -607,6 +607,13 @@
       "type": "symbol",
       "source": "openmaptiles",
       "source-layer": "water_name",
+      "filter": [
+        "==",
+        [
+          "geometry-type"
+        ],
+        "Point"
+      ],
       "layout": {
         "symbol-placement": "point",
         "text-justify": "auto",
