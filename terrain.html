@@ -19,9 +19,9 @@ body { margin: 0; padding: 0; }
 
 <script type=module>
 
-  import * as pmtiles from "https://unpkg.com/pmtiles@3.1.0/dist/index.js";
+  import * as pmtiles from "https://unpkg.com/pmtiles@3.2.0/dist/index.js";
   
-  const protocol = new pmtiles.Protocol();
+  const protocol = new pmtiles.Protocol({ metadata: true });
   maplibregl.addProtocol("pmtiles", protocol.tile);
 
   window.map = new maplibregl.Map({

@@ -18,7 +18,6 @@
     },
     "base": {
       "type": "vector",
-      "attribution": "<a href=\"https://overturemaps.org\" rel=\"noopener\" target=\"_blank\">Overture Maps Foundation</a>",
       "url": "pmtiles://https://d3c1b7bog2u1nn.cloudfront.net/2024-09-18/base.pmtiles"
     },
     "contours": {
