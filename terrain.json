@@ -156,6 +156,19 @@
           16,
           4
         ],
+        "line-opacity": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          10,
+          0.5,
+          14,
+          1
+        ],
         "line-color": [
           "case",
           [
