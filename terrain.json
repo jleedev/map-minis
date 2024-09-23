@@ -6,6 +6,10 @@
       "type": "vector",
       "url": "https://tile.ourmap.us/data/v3.json"
     },
+    "ne_10m_bathymetry": {
+      "type": "vector",
+      "url": "pmtiles://https://storage.googleapis.com/jleedev-junk/ne_10m_bathymetry_all.pmtiles"
+    },
     "dem": {
       "type": "raster-dem",
       "attribution": "<a target=\"_blank\" rel=\"noopener\" href=\"https://registry.opendata.aws/terrain-tiles/\">Terrain Tiles</a>",
@@ -309,6 +313,36 @@
           0.5,
           16,
           10
+        ]
+      }
+    },
+    {
+      "id": "bathymetry",
+      "type": "fill",
+      "source": "ne_10m_bathymetry",
+      "source-layer": "ne_10m_bathymetry_all",
+      "filter": [
+        ">",
+        [
+          "get",
+          "depth"
+        ],
+        0
+      ],
+      "paint": {
+        "fill-color": [
+          "interpolate-lab",
+          [
+            "linear"
+          ],
+          [
+            "get",
+            "depth"
+          ],
+          0,
+          "hsl(211, 50%, 85%)",
+          10000,
+          "hsl(211, 50%, 45%)"
         ]
       }
     },
