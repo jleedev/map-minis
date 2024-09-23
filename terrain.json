@@ -136,6 +136,74 @@
       }
     },
     {
+      "id": "contours",
+      "type": "line",
+      "source": "contours",
+      "source-layer": "contours",
+      "minzoom": 10,
+      "paint": {
+        "line-width": 1.2,
+        "line-blur": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          10,
+          2,
+          16,
+          4
+        ],
+        "line-color": [
+          "case",
+          [
+            "get",
+            "idx"
+          ],
+          "rgba(122, 122, 0, 0.7)",
+          "rgba(122, 122, 0, 0.4)"
+        ]
+      }
+    },
+    {
+      "id": "contours-text",
+      "type": "symbol",
+      "source": "contours",
+      "source-layer": "contours",
+      "minzoom": 10,
+      "filter": [
+        "==",
+        [
+          "get",
+          "idx"
+        ],
+        true
+      ],
+      "layout": {
+        "symbol-placement": "line",
+        "text-font": [
+          "Americana-Regular"
+        ],
+        "text-field": [
+          "format",
+          [
+            "get",
+            "ele"
+          ],
+          "′"
+        ],
+        "text-size": 9,
+        "text-letter-spacing": 0.1
+      },
+      "paint": {
+        "text-color": "#660",
+        "text-halo-width": 2,
+        "text-halo-color": "#fff"
+      }
+    },
+    {
       "id": "water_line",
       "type": "line",
       "source": "openmaptiles",
@@ -430,74 +498,6 @@
           10,
           3
         ]
-      }
-    },
-    {
-      "id": "contours",
-      "type": "line",
-      "source": "contours",
-      "source-layer": "contours",
-      "minzoom": 10,
-      "paint": {
-        "line-width": 1.2,
-        "line-blur": [
-          "interpolate",
-          [
-            "linear"
-          ],
-          [
-            "zoom"
-          ],
-          10,
-          2,
-          16,
-          4
-        ],
-        "line-color": [
-          "case",
-          [
-            "get",
-            "idx"
-          ],
-          "rgba(122, 122, 0, 0.7)",
-          "rgba(122, 122, 0, 0.4)"
-        ]
-      }
-    },
-    {
-      "id": "contours-text",
-      "type": "symbol",
-      "source": "contours",
-      "source-layer": "contours",
-      "minzoom": 10,
-      "filter": [
-        "==",
-        [
-          "get",
-          "idx"
-        ],
-        true
-      ],
-      "layout": {
-        "symbol-placement": "line",
-        "text-font": [
-          "Americana-Regular"
-        ],
-        "text-field": [
-          "format",
-          [
-            "get",
-            "ele"
-          ],
-          "′"
-        ],
-        "text-size": 9,
-        "text-letter-spacing": 0.1
-      },
-      "paint": {
-        "text-color": "#660",
-        "text-halo-width": 2,
-        "text-halo-color": "#fff"
       }
     },
     {
