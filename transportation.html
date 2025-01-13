@@ -7,9 +7,8 @@
 
 <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
 
-<script src="https://unpkg.com/maplibre-gl@4.3.2/dist/maplibre-gl.js" integrity="sha512-wTwr5N3o90MtYJ0nUtscYX16zOfajUhjwVuGQa9OpTzt/LxxPRODkQwOs/Fct+S+arpR2AobUoTQWyFOdrMIWw==" crossorigin="anonymous"></script>
-
-<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.3.2/dist/maplibre-gl.css" integrity="sha512-kPPBBqAnomArnDoE0fkmrQ6s42aaFQWvV7TsIVMRVyBnKw1hkUF2kuXDpkYWiZR/CBWyR9+0O/8chInGoDGeKw==" crossorigin="anonymous">
+<script src="https://unpkg.com/maplibre-gl@5.0.1/dist/maplibre-gl.js" integrity="sha512-3llpXips4N8SSN0hklS66wocrk6VI0Rr3095oLjyQvXYRLsKysefaGrjuO+/i6M/YMiyKFPPHZtmNWKhHGeVhg==" crossorigin></script>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.0.1/dist/maplibre-gl.css" integrity="sha512-DBNed2oEjOrfIRj8Czuzs7padWawLWbA64OoDekn8gs2a3J6WOaR5xXfnFgaxKGpxIuSn/rAo/PsgOgO6PZ/vA==" crossorigin>
 
 <style>
 body { margin: 0; padding: 0; }
@@ -361,6 +360,7 @@ body { margin: 0; padding: 0; }
     hash: true,
   });
   map.addControl(new maplibregl.ScaleControl());
+  map.addControl(new maplibregl.GlobeControl());
   map.dragRotate.disable();
   map.touchZoomRotate.disableRotation();
   map.touchPitch.disable();
@@ -371,4 +371,3 @@ body { margin: 0; padding: 0; }
 
 </body>
 </html>
-
