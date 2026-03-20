@@ -4,7 +4,7 @@
   "sources": {
     "openmaptiles": {
       "type": "vector",
-      "url": "https://tile.ourmap.us/data/v3.json"
+      "url": "https://tiles.openstreetmap.us/vector/openmaptiles.json"
     },
     "ne_10m_bathymetry": {
       "type": "vector",
@@ -26,7 +26,7 @@
     },
     "contours": {
       "type": "vector",
-      "url": "https://dwuxtsziek7cf.cloudfront.net/contours-feet.json"
+      "url": "https://tiles.openstreetmap.us/vector/contours-feet.json"
     }
   },
   "layers": [
